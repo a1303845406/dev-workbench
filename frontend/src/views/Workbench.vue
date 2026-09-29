@@ -20,7 +20,8 @@ const nav = [
 <template>
   <el-container style="height: 100%">
     <el-aside width="180px" class="side">
-      <div class="proj">{{ pid }}</div>
+      <div class="back" @click="router.push('/')">← 项目列表</div>
+      <div class="proj" :title="pid">{{ pid }}</div>
       <div v-for="n in nav" :key="n.name" class="nav-item" :class="{ active: route.name === n.name }"
         @click="router.push({ name: n.name, params: { pid } })">
         <span style="margin-right:8px">{{ n.icon }}</span>{{ n.label }}
@@ -34,7 +35,10 @@ const nav = [
 
 <style scoped>
 .side { border-right: 1px solid #e4e7ed; background: #fafbfc; padding: 12px 0; }
-.proj { font-weight: 600; padding: 4px 16px 14px; color: #2f54eb; }
+.back { margin: 0 16px 10px; padding: 5px 10px; font-size: 13px; color: #2f54eb; cursor: pointer;
+  border: 1px dashed #adc6ff; border-radius: 4px; text-align: center; }
+.back:hover { background: #ecf2ff; }
+.proj { font-weight: 600; padding: 4px 16px 14px; color: #2f54eb; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nav-item { padding: 10px 16px; cursor: pointer; color: #303133; font-size: 14px; }
 .nav-item:hover { background: #f0f2f5; }
 .nav-item.active { background: #ecf2ff; color: #2f54eb; font-weight: 600; border-right: 3px solid #2f54eb; }

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { connectSse, onStatus } from './sse'
 import OutboundConfirmDialog from './components/OutboundConfirmDialog.vue'
 
+const router = useRouter()
 const sseOk = ref(false)
 onMounted(() => {
   connectSse()
@@ -13,7 +15,7 @@ onMounted(() => {
 <template>
   <el-container style="height: 100vh">
     <el-header height="48px" class="topbar">
-      <div class="brand">
+      <div class="brand" title="返回项目列表" @click="router.push('/')">
         <span class="logo">⌘</span>
         <span class="title">开发工作台 <span class="en">Dev Workbench</span></span>
       </div>
@@ -35,7 +37,8 @@ onMounted(() => {
   display: flex; align-items: center; gap: 16px;
   border-bottom: 1px solid #e4e7ed; background: #fff;
 }
-.brand { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; }
+.brand:hover .title { color: #2f54eb; }
 .brand .logo { color: #2f54eb; font-size: 20px; }
 .brand .en { color: #909399; font-weight: 400; font-size: 12px; }
 .spacer { flex: 1; }

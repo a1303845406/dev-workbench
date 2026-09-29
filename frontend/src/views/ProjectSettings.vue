@@ -15,12 +15,16 @@ const conflict = ref<any>(null)
 const scanRoots = ref<string[]>([])
 const newRoot = ref('')
 const provider = ref('')
+const providerOptions = ref<{ name: string; label: string }[]>([])
 
 onMounted(async () => {
   project.value = await get(`/api/projects/${encodeURIComponent(pid)}`)
   rules.value = (await get(`/api/projects/${encodeURIComponent(pid)}/rules`)).content
   scanRoots.value = project.value.scan_roots || []
   provider.value = project.value.provider || ''
+  const sys = await get('/api/settings')
+  providerOptions.value = (sys.providers || []).map((p: any) =>
+    ({ name: p.name, label: `${p.name}（${p.model}）` }))
 })
 
 async function saveRules() {
@@ -97,8 +101,13 @@ async function removeProject() {
         <el-card shadow="never" style="margin-bottom:14px">
           <template #header><b>默认 Provider（仅存名称，Key 走环境变量 G-03）</b></template>
           <div style="display:flex; gap:8px">
-            <el-input v-model="provider" size="small" />
+            <el-select v-model="provider" size="small" style="flex:1" placeholder="选择 Provider">
+              <el-option v-for="p in providerOptions" :key="p.name" :value="p.name" :label="p.label" />
+            </el-select>
             <el-button size="small" @click="saveProvider">保存</el-button>
+          </div>
+          <div style="color:#909399; font-size:12px; margin-top:6px">
+            新增 Provider：系统设置 → Provider 卡片中的「如何新增/切换模型」三步说明
           </div>
         </el-card>
         <el-card shadow="never">

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 /** 系统设置（只读 S-02）：Provider 脱敏、模板、映射、约束包、脱敏规则、备份。 */
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { get, post } from '../api'
 import MarkdownView from '../components/MarkdownView.vue'
 
+const router = useRouter()
 const s = ref<any>(null)
 const backupRunning = ref(false)
 
@@ -27,7 +29,8 @@ function ElMessageSilent(msg: string) {
 <template>
   <div style="padding:16px 28px; overflow:auto; height:100%" v-if="s">
     <div style="display:flex; align-items:center; margin-bottom:12px">
-      <h2 style="margin:0">系统设置 <el-tag size="small" type="info" style="margin-left:8px">只读（S-02）</el-tag></h2>
+      <el-button size="small" @click="router.push('/')">← 返回项目列表</el-button>
+      <h2 style="margin:0 0 0 12px">系统设置 <el-tag size="small" type="info" style="margin-left:8px">只读（S-02）</el-tag></h2>
     </div>
 
     <el-row :gutter="16">
@@ -43,6 +46,16 @@ function ElMessageSilent(msg: string) {
           <div style="color:#909399; font-size:12px; margin-top:6px">
             默认 Provider：{{ s.default_provider }} · Key 从环境变量注入（key_env），永不落盘/入备份/入日志
           </div>
+          <el-alert type="info" :closable="false" style="margin-top:10px">
+            <template #title>如何新增 / 切换模型？（三步）</template>
+            <div style="font-size:13px; line-height:1.9">
+              ① 编辑配置文件 <b>{{ s.paths?.config_root }}\providers.json</b>：在 providers 数组中新增一项
+              （字段 name / base_url / model / key_env / stream / timeout_s），保存后 <b>5 秒内热加载</b>，无需重启；<br />
+              ② 设置 API Key 环境变量：变量名 = 该条目的 <b>key_env</b>（如 DEVWB_PROVIDER__OFFICIAL__API_KEY），
+              Key 只存环境变量，永不落盘；<br />
+              ③ 切换项目使用的模型：进入 <b>项目 → ⑦ 项目设置 → 默认 Provider</b>，从下拉中选择即可。
+            </div>
+          </el-alert>
         </el-card>
 
         <el-card shadow="never" style="margin-bottom:14px">
