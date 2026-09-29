@@ -5,7 +5,7 @@ export const router = createRouter({
   routes: [
     { path: '/', name: 'projects', component: () => import('./views/ProjectList.vue') },
     {
-      path: '/project/:pid', component: () => import('./views/Workbench.vue'),
+      path: '/project/:pid', name: 'workbench', component: () => import('./views/Workbench.vue'),
       children: [
         { path: '', redirect: { name: 'explore' } },
         { path: 'explore', name: 'explore', component: () => import('./views/Explore.vue') },

@@ -13,7 +13,7 @@ const nav = [
   { name: 'testcases', label: '④ 测试用例', icon: '🧪' },
   { name: 'board', label: '⑤ 任务看板', icon: '📋' },
   { name: 'assets', label: '⑥ 资产库', icon: '📚' },
-  { name: 'settings', label: '⑦ 项目设置', icon: '🔧' }
+  { name: 'psettings', label: '⑦ 项目设置', icon: '🔧' }
 ]
 </script>
 

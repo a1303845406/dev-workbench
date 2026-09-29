@@ -6,7 +6,7 @@ import asyncio
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 
-from ..core.audit import audit as audit_mod
+from ..core import audit as audit_mod
 from ..core import backup, paths
 from ..core.config import config_center
 from ..core.events import subscribe

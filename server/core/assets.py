@@ -139,8 +139,9 @@ def regen_handoff(project: str, prompt_id: str) -> dict:
 
 
 def provider_chat_sync(provider, messages):
+    """Bridge for sync endpoints: AnyIO worker threads have no ambient event loop."""
     import asyncio
-    return asyncio.get_event_loop().run_until_complete(provider.chat(messages))
+    return asyncio.run(provider.chat(messages))
 
 
 def diff_versions(project: str, prompt_id: str, v1: int, v2: int) -> dict:

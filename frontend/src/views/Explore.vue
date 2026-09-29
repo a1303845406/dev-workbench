@@ -6,6 +6,7 @@ import { ElMessage } from 'element-plus'
 import { get, patch, post, type OutboundConf } from '../api'
 import { onSse } from '../sse'
 import MarkdownView from '../components/MarkdownView.vue'
+import OutboundConfirmDialog from '../components/OutboundConfirmDialog.vue'
 
 const route = useRoute()
 const pid = route.params.pid as string
@@ -214,6 +215,7 @@ function startEditDraft() {
         </div>
       </template>
     </div>
+    <OutboundConfirmDialog ref="confirmRef" />
   </div>
 </template>
 

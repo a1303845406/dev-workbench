@@ -149,7 +149,7 @@ def _mock_content(mode: str, stage: str | None, module: str | None, user: str) -
     if mode == "compose":
         return _mock_compose(user)
     if mode == "testcase":
-        return _mock_testcase()
+        return _mock_testcase(user)
     if mode == "handoff":
         return "补充要点：任务输出已定稿，摘要与正文一致。" + _handoff("摘要重生成完成")
     # ring execution (module prompt)
@@ -205,11 +205,15 @@ def _mock_compose(user: str) -> str:
     return json.dumps(proposal, ensure_ascii=False)
 
 
-def _mock_testcase() -> str:
-    return ("## TC-F-001（功能）主流程创建\n- 前置条件：服务已启动\n- 步骤：创建项目→打开工作台\n"
+def _mock_testcase(user: str = "") -> str:
+    body = ("## TC-F-001（功能）主流程创建\n- 前置条件：服务已启动\n- 步骤：创建项目→打开工作台\n"
             "- 预期结果：项目出现在列表\n- 覆盖：F1\n\n"
             "## TC-B-001（业务）提示词交付闭环\n- 前置条件：已生成提示词\n- 步骤：复制→投喂外部 IDE\n"
             "- 预期结果：提示词可直接执行\n- 覆盖：F3\n")
+    if "性能用例：需要" in user:
+        body += ("## TC-P-001（性能）百文件扫描耗时\n- 前置条件：目标目录含 ≥100 文件\n"
+                 "- 步骤：执行扫描并计时\n- 预期结果：P95 耗时 ≤ 5s\n- 覆盖：N1\n")
+    return body
 
 
 def _mock_ring(module: str) -> str:

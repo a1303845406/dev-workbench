@@ -37,3 +37,6 @@ tmp*
 
 pip-unpack-*/
 pip-install-*/
+
+# --- e2e scratch ---
+devwb-e2e-*/
