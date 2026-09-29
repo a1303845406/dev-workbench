@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "tools": [
+    { "name": "GitHub Spec Kit", "category": "sdd", "enabled": true,
+      "note": "需求文档导出 spec.md 结构、任务清单导出 tasks.md 结构" },
+    { "name": "Taskmaster", "category": "packing", "enabled": true,
+      "note": "任务清单导出 PRD.md + tasks.json 结构" },
+    { "name": "OpenSpec", "category": "sdd", "enabled": false,
+      "note": "存量项目改造变更结构 changes/<变更名>/proposal.md" },
+    { "name": "Context7", "category": "doc-fetch", "enabled": true,
+      "guide_template": "实现 {目标} 前，先用 Context7 查询 {库} 的最新文档与 API 用法" },
+    { "name": "Serena", "category": "code-intel", "enabled": false,
+      "note": "LSP 符号级代码检索（存量项目改造场景启用）" },
+    { "name": "Sequential Thinking", "category": "reasoning", "enabled": false,
+      "guide_template": "复杂推理任务先以 Sequential Thinking 拆解步骤再动手" },
+    { "name": "AOCI-CODE", "category": "code-index", "enabled": false,
+      "note": "代码结构索引（符号+语义双层），索引产物可进入上下文" }
+  ]
+}

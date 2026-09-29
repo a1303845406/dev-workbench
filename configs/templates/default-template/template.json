@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "default-template",
+  "name": "默认模板",
+  "description": "通用开发项目目录规范（docs / src / tests / assets）",
+  "dirs": ["docs/需求", "docs/过程档案", "docs/assets", "src", "tests"],
+  "files": [
+    { "path": "README.md", "content_ref": "README.md.tmpl" },
+    { "path": "rules.md", "content_ref": "rules.md.tmpl" }
+  ],
+  "conflict": "block"
+}

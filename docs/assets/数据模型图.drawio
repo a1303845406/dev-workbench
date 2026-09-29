@@ -1,0 +1,92 @@
+<mxfile host="app.diagrams.net" agent="开发工作台设计阶段" version="24.7.8">
+  <diagram id="data-01" name="数据模型图">
+    <mxGraphModel dx="1200" dy="860" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="780" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="proj" value="项目&#10;── project.json ──&#10;名称 / 模板来源 / 创建时间&#10;schemaVersion（S-03）&#10;owner（一期恒空串，S-06）&#10;Provider 引用（仅名称，G-03）" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;spacingTop=4" vertex="1" parent="1">
+          <mxGeometry x="60" y="60" width="240" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="rules" value="工程规则 rules.md&#10;（第 2 层补充约束）&#10;技术栈 / 编码规范 / 目录约定&#10;自动注入每个提示词&#10;FR-02 骨架初始化 · FR-07 编辑" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;spacingTop=4" vertex="1" parent="1">
+          <mxGeometry x="360" y="60" width="240" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="tools" value="协同工具配置 tools.json&#10;工具名 / 类别 / 启用状态 / 说明&#10;（SDD / 文档检索 / 代码智能 /&#10;打包 / 推理）默认清单见附录 F" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;spacingTop=4" vertex="1" parent="1">
+          <mxGeometry x="660" y="60" width="240" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="req" value="需求产物 docs/需求/**&#10;SRS（Markdown + .drawio）&#10;滚动底稿 / 阶段记录 / 澄清记录&#10;docs/过程档案/**：评审意见" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;spacingTop=4" vertex="1" parent="1">
+          <mxGeometry x="920" y="60" width="220" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="pipe" value="流水线运行记录&#10;── pipeline/state/** ──&#10;当前角色/阶段 · 已确认产出指针&#10;待确认草稿（含滚动底稿快照）&#10;状态索引文件（断点位置）" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;fontStyle=1;spacingTop=4" vertex="1" parent="1">
+          <mxGeometry x="60" y="300" width="240" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="plan" value="编排计划 plan.json&#10;环执行序列（任务×模块）&#10;并行分组 / 依赖关系 / 执行状态&#10;（FR-04 规则 9.e）" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;fontStyle=1;spacingTop=4" vertex="1" parent="1">
+          <mxGeometry x="360" y="300" width="240" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="task" value="任务单元 pipeline/tasks.json&#10;id / 所属模块 / 描述&#10;依赖列表 / 上下文预算 / 执行状态&#10;（待投喂/已投喂/已完成/失败）" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;fontStyle=1;spacingTop=4" vertex="1" parent="1">
+          <mxGeometry x="660" y="300" width="240" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="ring" value="环调用记录&#10;orchestration/&lt;环&gt;/**&#10;输入包（角色/全局/任务/上游四层）&#10;模型输出 · handoff.md 交接摘要&#10;全量落盘，可复现可审计（9.g）" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;fontStyle=1;spacingTop=4" vertex="1" parent="1">
+          <mxGeometry x="920" y="300" width="220" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="prompt" value="提示词 prompts/&lt;模块&gt;/&lt;任务&gt;/**&#10;正文 + front matter&#10;（版本号 / 生成参数 / 模块 /&#10;关联任务 id / 工具指引标记）&#10;v1..vn 版本可对比可回滚（G1）" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1;spacingTop=4" vertex="1" parent="1">
+          <mxGeometry x="60" y="540" width="240" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="tc" value="测试用例 testcases/**&#10;用例 id / 覆盖需求·任务编号&#10;前置条件 / 步骤 / 预期结果&#10;功能+业务必选 · 性能可选（FR-05）" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1;spacingTop=4" vertex="1" parent="1">
+          <mxGeometry x="360" y="540" width="240" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="fb" value="反馈记录 feedback.md&#10;提示词 id / 执行结果 / 返工原因（单行）&#10;协同工具使用反馈（FR-08）&#10;驱动注册表启用状态调整" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1;spacingTop=4" vertex="1" parent="1">
+          <mxGeometry x="660" y="540" width="240" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="note1" value="产品级配置（项目树外）：&#10;通用硬约束包（版本化，注入所有提示词且项目层不可放宽，2.9.1）&#10;模块池提示词模板 ×10 · 复杂度→模块组合映射 · 默认模板 · 默认工具清单&#10;⚠ Provider API Key 不在本树任何位置（G-03）：环境变量 / 树外加密配置" style="shape=note;size=16;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;spacingLeft=10" vertex="1" parent="1">
+          <mxGeometry x="920" y="540" width="220" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="r1" value="1 : 1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10" edge="1" parent="1" source="proj" target="rules">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r2" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10" edge="1" parent="1" source="proj" target="tools">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r3" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10" edge="1" parent="1" source="proj" target="req">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r4" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10" edge="1" parent="1" source="proj" target="pipe">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r5" value="1 : 1（FR-04 类流水线）" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10" edge="1" parent="1" source="pipe" target="plan">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r6" value="按 DAG 引用 N : M" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10" edge="1" parent="1" source="plan" target="task">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r7" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10" edge="1" parent="1" source="pipe" target="ring">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="180" y="270" />
+              <mxPoint x="1030" y="270" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r8" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10" edge="1" parent="1" source="proj" target="task">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="500" y="250" />
+              <mxPoint x="780" y="250" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r9" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10" edge="1" parent="1" source="task" target="prompt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r10" value="1 : N（测试模块环产出）" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10" edge="1" parent="1" source="task" target="tc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r11" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10" edge="1" parent="1" source="prompt" target="fb">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r12" value="上游层引用（仅直接依赖交接摘要 + 路径引用）" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=9" edge="1" parent="1" source="ring" target="plan">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

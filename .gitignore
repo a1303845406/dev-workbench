@@ -1,0 +1,39 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Node / frontend ---
+node_modules/
+frontend/dist/
+frontend/.tmp/
+*.local
+
+# --- Runtime data (product data roots) ---
+workspace/projects/*
+workspace/logs/*
+backups/*
+!backups/.gitkeep
+!workspace/.gitkeep
+logs/
+*.lock
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# --- pytest temp / stray tmp ---
+pytest-of-*/
+.pytest-basetemp/
+tmp*.pem
+tmp*
+
+pip-unpack-*/
+pip-install-*/

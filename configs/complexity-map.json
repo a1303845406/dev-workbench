@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "levels": {
+    "简单": { "modules": ["requirement", "development-backend", "test", "acceptance"] },
+    "中等": { "modules": ["requirement", "design-outline", "database", "development-backend", "development-frontend", "test", "acceptance"] },
+    "复杂": { "modules": "*all*" }
+  },
+  "hard_constraint": ["requirement", "<任一 development-*>", "test", "acceptance"]
+}

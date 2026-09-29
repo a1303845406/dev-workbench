@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "rules": [
+    { "id": "api-key", "pattern": "sk-[A-Za-z0-9]{20,}", "severity": "block" },
+    { "id": "github-token", "pattern": "ghp_[A-Za-z0-9]{30,}", "severity": "block" },
+    { "id": "aws-key", "pattern": "AKIA[0-9A-Z]{16}", "severity": "block" },
+    { "id": "password", "pattern": "(?i)(password|passwd|pwd)\\s*[:=]\\s*\\S+", "severity": "confirm" },
+    { "id": "intranet", "pattern": "(10\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|192\\.168\\.\\d{1,3}\\.\\d{1,3})", "severity": "confirm" }
+  ]
+}

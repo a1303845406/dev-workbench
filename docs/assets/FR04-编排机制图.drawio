@@ -1,0 +1,142 @@
+<mxfile host="app.diagrams.net" agent="开发工作台设计阶段" version="24.7.8">
+  <diagram id="orch-01" name="FR-04编排机制图">
+    <mxGraphModel dx="1200" dy="860" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="760" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="dag" value="任务 DAG（pipeline/tasks.json）" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="50" width="280" height="310" as="geometry" />
+        </mxCell>
+        <mxCell id="t1" value="T1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="140" y="95" width="100" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="t2" value="T2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="60" y="200" width="100" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="t3" value="T3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="220" y="200" width="100" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="dagnote" value="编排器按拓扑序遍历：依赖未完成则等待；无依赖任务可并行发起" style="text;html=1;whiteSpace=wrap;fillColor=none;strokeColor=none;fontSize=10;align=left" vertex="1" parent="1">
+          <mxGeometry x="50" y="270" width="260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="te1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1" edge="1" parent="1" source="t1" target="t2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="te2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1" edge="1" parent="1" source="t1" target="t3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rings" value="单任务内环序列（编排计划先行，可预览/人工调整后确认）" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="360" y="50" width="250" height="310" as="geometry" />
+        </mxCell>
+        <mxCell id="g1" value="需求环" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="410" y="90" width="150" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="g2" value="详设环（示例）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="410" y="138" width="150" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="g3" value="开发环" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="410" y="186" width="150" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="g4" value="测试环（FR-05）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="410" y="234" width="150" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="g5" value="验收环" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="410" y="282" width="150" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="ge1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1" edge="1" parent="1" source="g1" target="g2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ge2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1" edge="1" parent="1" source="g2" target="g3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ge3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1" edge="1" parent="1" source="g3" target="g4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ge4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1" edge="1" parent="1" source="g4" target="g5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="input" value="每环输入包四层（独立无状态组装，规则 9.c）" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="650" y="50" width="470" height="310" as="geometry" />
+        </mxCell>
+        <mxCell id="i1" value="① 角色层：该模块的角色系统提示词（模块池预置，可配置）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;align=left;spacingLeft=8" vertex="1" parent="1">
+          <mxGeometry x="670" y="90" width="430" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="i2" value="② 全局层：通用硬约束包（版本化，在前）+ rules.md 全文（在后）&#10;—— 注入顺序固定，收紧不放宽（2.9.3 / AC-17）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;align=left;spacingLeft=8" vertex="1" parent="1">
+          <mxGeometry x="670" y="142" width="430" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="i3" value="③ 任务层：任务描述 / 验收标准 / 复杂度档位 / 关联需求条目（EARS）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;align=left;spacingLeft=8" vertex="1" parent="1">
+          <mxGeometry x="670" y="202" width="430" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="i4" value="④ 上游层：仅直接依赖任务的交接摘要；非直接依赖以文件路径引用带入" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;align=left;spacingLeft=8" vertex="1" parent="1">
+          <mxGeometry x="670" y="254" width="430" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="inote" value="四层总字符量计入该环预算校验（规则 9.f）" style="text;html=1;whiteSpace=wrap;fillColor=none;strokeColor=none;fontSize=10;align=left" vertex="1" parent="1">
+          <mxGeometry x="670" y="304" width="430" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="a1" value="编排器组装输入包&#10;（无状态逐环调用）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="40" y="430" width="170" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="a2" value="预算校验&#10;（字符估算 + token 复核）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="250" y="430" width="170" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="dec" value="超预算？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="460" y="423" width="110" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="a3" value="压缩上游层 →&#10;截断为路径引用并告警" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="630" y="340" width="180" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="a4" value="仍超限 → 阻断，&#10;提示拆分上游任务" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="880" y="340" width="180" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="a5" value="调用 Provider&#10;（单次独立模型调用）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="630" y="436" width="180" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="a6" value="产出：正文&#10;+ 交接摘要（默认 ≤500 字符）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="880" y="436" width="180" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="b1" value="全量落盘&#10;orchestration/&lt;环&gt;/（9.g）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="630" y="540" width="180" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="b2" value="自动推进下一环；&#10;任务全部环完成 → 单元完结" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="880" y="540" width="180" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="b3" value="失败：重试（默认 3 次可配）→ 挂起于该环&#10;FR-06 断点恢复：从挂起环继续，前序不重算" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="40" y="540" width="280" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="note2" value="定稿联动（AC-16）：人工微调某环产出并定稿后，&#10;其交接摘要基于旧版本 → 系统提示过期并提供一键重新生成；&#10;下游输入包永远取「最新定稿产出」对应的交接摘要" style="shape=note;size=14;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;spacingLeft=8" vertex="1" parent="1">
+          <mxGeometry x="360" y="540" width="240" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="oe1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1" edge="1" parent="1" source="rings" target="a1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oe2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1" edge="1" parent="1" source="a1" target="a2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oe3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1" edge="1" parent="1" source="a2" target="dec">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oe4" value="是" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10" edge="1" parent="1" source="dec" target="a3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oe5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1" edge="1" parent="1" source="a3" target="a4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oe6" value="否" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10" edge="1" parent="1" source="dec" target="a5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oe7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1" edge="1" parent="1" source="a5" target="a6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oe8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1" edge="1" parent="1" source="a6" target="b1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oe9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1" edge="1" parent="1" source="b1" target="b2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oe10" value="异常" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=10" edge="1" parent="1" source="a5" target="b3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

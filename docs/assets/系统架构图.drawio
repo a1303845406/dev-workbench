@@ -1,0 +1,106 @@
+<mxfile host="app.diagrams.net" agent="开发工作台设计阶段" version="24.7.8">
+  <diagram id="arch-01" name="系统架构图">
+    <mxGraphModel dx="1200" dy="860" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="860" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="browser" value="浏览器（前端 SPA · 桌面优先 · 中文界面）" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="780" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="pg1" value="项目列表&#10;新建项目向导&#10;（FR-02/FR-07）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="60" y="80" width="140" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="pg2" value="需求探索流水线&#10;七阶段对话工作区&#10;（FR-01）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="215" y="80" width="140" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="pg3" value="提示词工程工作区&#10;编排/预览/定稿/外发确认&#10;（FR-04/FR-05）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="370" y="80" width="150" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="pg4" value="项目规整工作区&#10;结构画像/建议确认&#10;（FR-03）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="535" y="80" width="130" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="pg5" value="任务看板/版本对比&#10;工具注册表/只读设置&#10;（FR-07/FR-08/S-02）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="680" y="80" width="125" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="server" value="服务端（Python 3.12 + FastAPI · 单进程 · 绑定 127.0.0.1）" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="300" width="780" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="api" value="API 路由层&#10;REST + SSE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="60" y="345" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pl01" value="FR-01 流水线引擎&#10;七阶段状态机+滚动底稿" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="205" y="345" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="orch" value="编排器 Orchestrator&#10;DAG 拓扑序·逐环调用&#10;输入包组装·预算校验" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="360" y="345" width="145" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="scan" value="FR-03 扫描器&#10;目录画像·codegraph 适配层&#10;（AOCI-CODE/tree-sitter）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="520" y="345" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="exp" value="FR-08 适配导出器&#10;Spec Kit/Taskmaster/通用" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="685" y="345" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cfg" value="配置中心&#10;产品级配置热加载&#10;（NFR-07）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="60" y="440" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sani" value="脱敏扫描器&#10;密钥/密码/内网地址&#10;（FR-04 规则 7）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="205" y="440" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="persist" value="落盘服务&#10;原子写·状态存档·front matter&#10;（FR-06 P0）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="360" y="440" width="145" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="backup" value="备份调度器&#10;每日快照·保留 30 天&#10;（NFR-08）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="520" y="440" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="provider" value="Provider 抽象层&#10;OpenAI 兼容·流式 SSE&#10;Key 走环境变量（G-03）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="685" y="440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fs" value="本机文件系统（UTF-8 文本 · 无数据库 · Git 友好）" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="660" width="470" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="fs1" value="projects/&lt;项目&gt;/：project.json、rules.md、tools.json、docs/、analysis/、pipeline/、prompts/、testcases/、exports/、assets/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=10;align=left;spacingLeft=8" vertex="1" parent="1">
+          <mxGeometry x="55" y="695" width="440" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="fs2" value="产品级配置：模板/模块提示词/硬约束包（版本化）/复杂度映射/默认工具清单" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=10;align=left;spacingLeft=8" vertex="1" parent="1">
+          <mxGeometry x="55" y="755" width="440" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="fs3" value="backups/：每日项目快照（不含任何 API Key，G-03）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=10;align=left;spacingLeft=8" vertex="1" parent="1">
+          <mxGeometry x="55" y="790" width="440" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="llm" value="LLM Provider API&#10;（官方 / 自建中转站）" style="rounded=1;whiteSpace=wrap;html=1;dashed=0;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="570" y="680" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="localpath" value="本机项目路径（FR-03 直读）&#10;白名单边界校验（NFR-04）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="570" y="760" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="eco" value="外部协同工具（并行使用·非代码集成，CON-13）&#10;Spec Kit / Taskmaster / OpenSpec / Context7 / Serena / AOCI-CODE / Repomix / Sequential Thinking / DeepWiki" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=10" vertex="1" parent="1">
+          <mxGeometry x="850" y="300" width="270" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="eco2" value="外部 IDE Agent（下游消费者）&#10;Trae / Cursor / Codex CLI …&#10;接收提示词执行代码修改" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=10" vertex="1" parent="1">
+          <mxGeometry x="850" y="480" width="270" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="REST + SSE（localhost 回环）" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=11" edge="1" parent="1" source="browser" target="server">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="HTTPS 调用（模型外发前经知情确认 G-10）" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10" edge="1" parent="1" source="provider" target="llm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="只读扫描（防符号链接穿越）" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10" edge="1" parent="1" source="scan" target="localpath">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="原子落盘" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10" edge="1" parent="1" source="persist" target="fs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="结构对齐导出（纯文件格式，无运行时依赖）" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=10" edge="1" parent="1" source="exp" target="eco">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="提示词投喂" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=10" edge="1" parent="1" source="eco" target="eco2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="note1" value="一期部署形态：服务端与浏览器同机，http://localhost:&lt;port&gt;&#10;禁止局域网 IP + HTTP 服务形态（P-01 / NFR-03）&#10;二期演进：HTTPS + 门禁鉴权后局域网共享（FU-05/FU-02）" style="shape=note;size=14;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;align=left;spacingLeft=8" vertex="1" parent="1">
+          <mxGeometry x="850" y="660" width="270" height="100" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
