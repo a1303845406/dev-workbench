@@ -36,6 +36,7 @@ echo.
 echo   浏览器访问: http://127.0.0.1:8642/
 echo   API 文档:   http://127.0.0.1:8642/api/docs
 echo.
+start "" /min cmd /c "timeout /t 4 /nobreak >nul && start "" http://127.0.0.1:8642/"
 .venv\Scripts\python -m uvicorn server.app:app --host 127.0.0.1 --port 8642
 goto :eof
 
