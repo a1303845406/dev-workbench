@@ -72,7 +72,7 @@ async function doCompose() {
 async function doSplit() {
   try {
     const r = await post(`/api/projects/${encodeURIComponent(pid)}/split`, {
-      proposal, complexity: complexity.value, modules_selected: modules.value,
+      proposal: proposal.value, complexity: complexity.value, modules_selected: modules.value,
       context_limit_chars: contextLimit.value, coefficient: coef.value
     })
     tasksData.value = r

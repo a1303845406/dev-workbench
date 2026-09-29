@@ -158,24 +158,25 @@ def _update_header(draft: str, plid: str, stage: str) -> str:
                   draft, count=1, flags=re.MULTILINE)
 
 
-def _apply_patches(draft: str, patches: list[dict]) -> str:
+def _apply_patches(draft: str, patches: list[dict]) -> tuple[str, int]:
     sections = _split_sections(draft)
-    title_by_cn = {s.split("、")[1]: s for s in SECTION_TITLES}
+    title_by_no = {s.split("、")[0]: s for s in SECTION_TITLES}
+    applied = 0
     for p in patches:
         sec_name = str(p.get("section", "")).strip()
-        title = sec_name if sec_name in SECTION_TITLES else title_by_cn.get(sec_name)
+        title = sec_name if sec_name in SECTION_TITLES else title_by_no.get(sec_name)
         if title is None:
             continue
         content = str(p.get("content", ""))
         action = p.get("action", "append")
         cur = sections.get(title, "")
         sections[title] = (cur + "\n\n" + content).strip("\n") if action == "append" else content
-    rebuilt = re.sub(r"^# 滚动工作底稿.*$", lambda m: m.group(0), draft.split("## ")[0], flags=re.MULTILINE)
+        applied += 1
     head = draft.split("## 一、")[0]
     body = head
     for title in SECTION_TITLES:
         body += f"## {title}\n\n{sections.get(title, '')}\n\n"
-    return body.rstrip() + "\n"
+    return body.rstrip() + "\n", applied
 
 
 # ------------------------------------------------------------------- chat
@@ -245,10 +246,11 @@ async def chat(project: str, plid: str, stage: str, user_input: str, *,
             patches = []
 
     if patches:
-        draft = _apply_patches(draft, patches)
+        draft, patches_applied = _apply_patches(draft, patches)
     else:
-        draft = _apply_patches(draft, [{"section": "四", "action": "append",
-                                        "content": f"### 第 {round_no} 轮（{stage}）\n- 输入摘要：{user_input[:80]}…\n- 产出见阶段记录"}])
+        draft, patches_applied = _apply_patches(
+            draft, [{"section": "四", "action": "append",
+                     "content": f"### 第 {round_no} 轮（{stage}）\n- 输入摘要：{user_input[:80]}…\n- 产出见阶段记录"}])
     draft = _update_header(draft, plid, stage)
     atomic_write_text(_draft_path(project), draft)
 
@@ -263,7 +265,7 @@ async def chat(project: str, plid: str, stage: str, user_input: str, *,
     atomic_write_json(_state_path(project, plid), state)
     await events.publish("pipeline.round_done", {"plid": plid, "stage": stage, "round": round_no})
     return {"round": round_no, "stage": stage, "reply_markdown": reply.strip(),
-            "patches_applied": len(patches), "stage_file": draft_file.name,
+            "patches_applied": patches_applied, "stage_file": draft_file.name,
             "usage": result.usage}
 
 

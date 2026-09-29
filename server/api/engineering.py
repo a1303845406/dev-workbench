@@ -24,9 +24,9 @@ async def compose(pid: str, body: dict):
 
 @router.post("/projects/{pid}/split")
 def split(pid: str, body: dict):
-    return orchestrator.split(pid, body.get("proposal", {}),
+    return orchestrator.split(pid, body.get("proposal") or {},
                               body.get("complexity", "中等"),
-                              body.get("modules_selected", []),
+                              body.get("modules_selected") or [],
                               context_limit_chars=int(body.get("context_limit_chars", 128000)),
                               coefficient=float(body.get("coefficient", 0.6)))
 

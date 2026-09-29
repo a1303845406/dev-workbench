@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /** 资产库（FR-07/FR-08）：版本时间线、两版对比、回滚、反馈、导出。 */
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { get, post } from '../api'
@@ -28,15 +28,11 @@ const format = ref('markdown')
 const scope = ref({ requirements: true, tasks: true, prompts: false })
 const exportsList = ref<any[]>([])
 
-const sameFamily = computedV()
-
-function computedV() {
+const sameFamily = computed(() => {
   // group prompts of same module+task for version compare/rollback
-  return () => {
-    if (!current.value) return []
-    return prompts.value.filter(p => p.module === current.value.module && p.task_id === current.value.task_id)
-  }
-}
+  if (!current.value) return []
+  return prompts.value.filter(p => p.module === current.value.module && p.task_id === current.value.task_id)
+})
 
 async function load() {
   prompts.value = (await get(`/api/projects/${encodeURIComponent(pid)}/prompts`)).prompts
@@ -47,7 +43,7 @@ async function load() {
 
 async function pick(p: any) {
   current.value = await get(`/api/prompts/${p.prompt_id}?pid=${encodeURIComponent(pid)}`)
-  versions.value = sameFamily()()
+  versions.value = sameFamily.value
   diff.value = null
   tab.value = 'detail'
 }

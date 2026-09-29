@@ -33,7 +33,7 @@ async function create() {
     wizard.value = false
     step.value = 0
     await load()
-    router.push({ name: 'workbench', params: { pid: res.name } })
+    router.push(`/project/${encodeURIComponent(res.name)}`)
   } catch (e: any) {
     ElMessage.error(`${e.message}（${e.code}）`)
   } finally { creating.value = false }
@@ -85,7 +85,7 @@ function tplOf(id: string) {
           </div>
           <div style="margin-top: 12px; display:flex; gap:8px">
             <el-button type="primary" size="small"
-              @click="router.push({ name: 'workbench', params: { pid: p.name } })">打开工作台</el-button>
+              @click="router.push(`/project/${encodeURIComponent(p.name)}`)">打开工作台</el-button>
             <el-button size="small" type="danger" plain @click="remove(p)">删除</el-button>
           </div>
         </el-card>
