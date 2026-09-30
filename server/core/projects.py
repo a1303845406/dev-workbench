@@ -207,5 +207,36 @@ def save_custom_template(name: str, from_project: str) -> dict:
     return template
 
 
+def create_blank_template(name: str, dirs: list[str], description: str = "") -> dict:
+    """Create an empty custom template with a user-defined directory skeleton."""
+    check_safe_name(name, "模板名")
+    if not isinstance(dirs, list) or not dirs or not all(isinstance(d, str) and d.strip() for d in dirs):
+        raise ApiError("INVALID_TEMPLATE_DIRS", 400, "dirs 必须为非空字符串数组")
+    clean = sorted({d.strip().replace("\\", "/").strip("/") for d in dirs if d.strip()})
+    if any(d.startswith("..") or ":" in d for d in clean):
+        raise ApiError("INVALID_TEMPLATE_DIRS", 400, "目录不允许相对上跳或盘符")
+    tpl_dir = config_root_templates() / name
+    if tpl_dir.exists():
+        raise name_conflict(f"模板已存在：{name}")
+    tpl_dir.mkdir(parents=True)
+    template = {"schemaVersion": 1, "id": name, "name": name,
+                "description": description or "自定义空白模板", "dirs": clean, "files": []}
+    atomic_write_json(tpl_dir / "template.json", template)
+    audit("template.create", target=name, detail={"dirs": clean})
+    return template
+
+
+def delete_custom_template(name: str) -> dict:
+    if name == "default-template":
+        raise ApiError("TEMPLATE_PROTECTED", 400, "内置模板不可删除")
+    check_safe_name(name, "模板名")
+    tpl_dir = config_root_templates() / name
+    if not tpl_dir.is_dir():
+        raise ApiError("TEMPLATE_NOT_FOUND", 404, "模板不存在", {"template": name})
+    shutil.rmtree(tpl_dir)
+    audit("template.delete", target=name)
+    return {"deleted": name}
+
+
 def config_root_templates():
     return paths.config_root() / "templates"

@@ -53,7 +53,15 @@ def list_templates():
 
 @router.post("/templates", status_code=201)
 def save_template(body: dict):
-    return projects.save_custom_template(body.get("name", ""), body.get("from_project", ""))
+    if body.get("from_project"):
+        return projects.save_custom_template(body.get("name", ""), body["from_project"])
+    return projects.create_blank_template(body.get("name", ""), body.get("dirs", []),
+                                          body.get("description", ""))
+
+
+@router.delete("/templates/{name}")
+def delete_template(name: str):
+    return projects.delete_custom_template(name)
 
 
 # --------------------------------------------------------------------- rules

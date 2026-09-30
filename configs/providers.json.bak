@@ -5,25 +5,16 @@
       "base_url": "mock://local",
       "model": "mock-1",
       "key_env": "",
-      "key": "***",
-      "stream": true
+      "stream": true,
+      "timeout_s": 30
     },
     {
       "name": "官方-主模型",
       "base_url": "https://api.openai.com/v1",
       "model": "gpt-4o-mini",
       "key_env": "DEVWB_PROVIDER__OFFICIAL__API_KEY",
-      "key": "***",
-      "stream": true
-    },
-    {
-      "name": "deepseek-chat",
-      "base_url": "https://api.deepseek.com/v1",
-      "model": "deepseek-chat",
-      "key_env": "DEVWB_PROVIDER__DEEPSEEK__API_KEY",
       "stream": true,
-      "timeout_s": 60,
-      "note": ""
+      "timeout_s": 120
     }
   ],
   "default": "mock-demo"

@@ -5,7 +5,8 @@
         "requirement",
         "development-backend",
         "test",
-        "acceptance"
+        "acceptance",
+        "database"
       ]
     },
     "中等": {

@@ -63,6 +63,24 @@ def list_backups() -> list[dict]:
     return out
 
 
+def restore(date: str, confirm_name: str) -> dict:
+    """Restore projects/ from a snapshot; auto-snapshot current state first (S-01)."""
+    from .errors import ApiError
+    if confirm_name != date:
+        raise ApiError("RESTORE_CONFIRM_MISSING", 400, "confirm_name 与快照日期不一致")
+    src = paths.backup_root() / date / "projects"
+    if not src.is_dir():
+        raise ApiError("BACKUP_NOT_FOUND", 404, "快照不存在", {"date": date})
+    pre = snapshot(label=f"{datetime.now().strftime('%Y-%m-%d')}-pre-restore")
+    dst = paths.projects_root()
+    if dst.exists():
+        shutil.rmtree(dst)
+    shutil.copytree(src, dst)
+    files = sum(1 for f in dst.rglob("*") if f.is_file())
+    audit("backup.restore", detail={"date": date, "files": files, "pre_snapshot": pre["date"]})
+    return {"restored": date, "files": files, "pre_restore_snapshot": pre["date"]}
+
+
 def cleanup_old(keep_days: int = RETENTION_DAYS) -> list[str]:
     root = paths.backup_root()
     removed = []
