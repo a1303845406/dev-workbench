@@ -43,3 +43,8 @@ devwb-e2e-*/
 
 # E2E 测试运行时残留
 configs/templates/e2e*
+
+# 配置滚动备份（运行时产物）
+configs/*.bak
+configs/*.bak2
+configs/*.bak3
