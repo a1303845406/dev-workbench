@@ -36,6 +36,8 @@
 
 ## 快速开始
 
+Windows 下推荐直接双击或运行仓库根目录的 `start-devworkbench.bat`：脚本会设置 `DEVWB_HOME`、检测前端构建产物、后台轮询 `/api/health`，服务就绪后自动用默认浏览器打开驾驶舱。
+
 ### 后端
 
 ```powershell
