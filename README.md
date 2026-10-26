@@ -1,146 +1,116 @@
-# 开发工作台 · Dev Workbench
+# Dev Workbench v2
 
-> 一个部署在 localhost、文件系统即数据库的 **AI 辅助开发 Web 工作台**。它不写代码——它产出**规范文档 + 可直接投喂外部 IDE（Trae / Codex CLI / Cursor 等）的提示词**。
+> 本地 B/S 开发指挥中枢：管理项目、版本化产物、任务卡、执行回执、CI 证据与人工验收。外部 Agent 是执行者，最终决策权保留给人。
 
-[English](README.en.md) | 中文
+## 第一阶段已实现
 
----
+第一阶段验证一个真实的最小开发控制闭环：
 
-## 这是什么
+`Project → 六个项目级 ArtifactVersion → Module/Feature/TaskCard → PromptInstance → ExecutionRun → 本地 MCP ExecutionReceipt → changed_files 工作区扫描 → 独立 TestRun/CI → WorkbenchConclusion → AcceptanceConclusion`
 
-开发工作台把「需求 → 设计 → 开发 → 测试 → 验收」全流程拆成 **10 个可动态组合的模块**，依据任务复杂度自动选择组合、按外部 IDE 上下文窗口上限拆分任务粒度，逐环生成带完整上下文包的提示词，并对复制/导出链路做脱敏门禁。全部数据以 Markdown / JSON 文本落盘，Git 友好，无数据库依赖。
+已覆盖：
 
-**核心定位**：本工具是"大脑"，外部 IDE 是"手脚"。
+- SQLite WAL 事务库：关系、幂等、事件和重启恢复；文件系统保存 CI 日志等证据。
+- 不可变产物版本链：新版本通过 `based_on_version_id` 关联，不覆盖历史。
+- TaskCard 计划状态和 ExecutionRun 执行状态分离；需求变更可将旧卡标记 `superseded`。
+- AI 一审失败时支持带理由人工强制批准。
+- 本地 MCP 回执接口：`POST /api/v2/mcp/receipts`，每次执行令牌隔离，重复 `report_id` 幂等。
+- changed_files 由工作台扫描验证，不接受 Agent 自报作为唯一事实；支持 Git 工作区和非 Git 工作区。
+- 项目 workspace 绑定唯一，拒绝两个项目共享同一个工作目录。
+- 独立 TestRun/CI runner：命令 allowlist、超时、禁止 shell 运算符和路径逃逸。
+- Workbench 总结、人工普通验收和带风险验收，所有关键动作写入事件流。
+- superseded 任务不能重新审核、批准或生成提示词；重复 `report_id` 只有 payload 完全一致时才视为幂等，否则拒绝冲突。
+- WorkbenchConclusion 仅接受 `passed`、`failed`、`rework_required`；CI 可执行入口必须是无路径的 allowlist 命令名。
+- 最小项目驾驶舱：项目列表、六节点产物、任务与执行状态、事件历史。
+- 仓库登记与状态：按项目登记本地仓库，展示 Git/非 Git、分支、提交和工作区变更；MCP token 只在执行启动后的当前页面会话展示，不写入执行查询结果。
+- 空工作区基线是有效事实；扫描不会把父级 Git 仓库的无关变更混入项目回执。
 
-## 功能一览（对标 SRS V1.2.2）
-
-| 模块 | 能力 | 需求追溯 |
-|---|---|---|
-| 🧭 需求探索（FR-01） | 七阶段流水线：引导对话 → 碎片提炼(B/F/N/C) → 澄清追问 → 摘要确认 → 范围冻结 → 文档编写 → 评审修订；每阶段确认门 + 滚动底稿六区落盘 + 断点续跑 | AC-01/06/15 |
-| 🗂 项目规整（FR-03） | 同机目录只读扫描：路径白名单、深度/条数上限、语言构成统计、目录健康度、分级规整建议（自动归位/需人工决策） | AC-03 |
-| ⚙️ 提示词工程（FR-04） | 六步工作流：勾选上下文 → 复杂度声明(简单/中等/复杂) → 模块组合(硬约束：需求→任一开发→测试→验收) → 按预算任务拆分 → 编排计划(拓扑序+并行组) → 环执行(四层输入包/预算闸门/交接摘要/失败挂起恢复) | AC-04/14/16 |
-| 🧪 测试用例（FR-05） | 功能/业务用例必出，性能用例可选开关；覆盖编号标注 | AC-05 |
-| 📋 任务看板（G5） | 待投喂/已投喂/已完成/失败四列流转，失败必填备注 | — |
-| 📚 资产库（FR-07/08） | 提示词版本链、两版对比、回滚、执行反馈；Spec Kit / Taskmaster / OpenSpec / 通用 Markdown 适配导出 | AC-07/13 |
-| 🔧 分层编码规范（2.9） | 通用硬约束包（不可放宽）+ 项目 rules.md，保存时关键词级冲突告警 | AC-17 |
-| 🔐 安全机制 | 外发知情确认（G-10）、脱敏扫描（密钥/密码/内网地址）、Provider Key 仅走环境变量、强制绑定 127.0.0.1 | NFR-03/04/12 |
-| 💾 持久化与备份（FR-06/NFR-08） | 原子写（临时文件+replace）、状态索引、.bak 滚动副本、每日快照 + Key 预扫描 | AC-06/09 |
+第一阶段**不宣称**自动驱动 Codex/DSH/Cursor，也不伪造最终人工验收；当前人工验收需要由产品负责人在驾驶舱或 API 中完成。
 
 ## 技术栈
 
-- **后端**：Python 3.10+ · FastAPI · Uvicorn · httpx（OpenAI 兼容 Provider 抽象，内置离线 mock Provider，无需 API Key 即可完整体验）
-- **前端**：Vue 3 · TypeScript · Vite · Element Plus · Pinia · markdown-it + DOMPurify
-- **存储**：纯文件系统（Markdown / JSON / .drawio），LF 统一换行，schemaVersion 校验
-- **推送**：SSE 全局事件流（环执行进度、配置热加载、备份完成等）
+- 后端：Python 3.10+、FastAPI、Pydantic、Uvicorn、httpx
+- 前端：Vue 3、TypeScript、Vite
+- 存储：SQLite（控制关系）+ 文件系统（项目工作区和证据）
+- 运行方式：单个 FastAPI 进程同时提供 REST、内置本地 MCP 接口和构建后的前端
 
 ## 快速开始
 
-### 方式一：一键启动（Windows）
+### 后端
 
-```bat
-启动工作台.bat
-```
-
-脚本自动创建 venv、安装依赖、（如需要）构建前端并启动服务。
-
-### 方式二：手动
-
-```bash
-# 1. 后端
+```powershell
 python -m venv .venv
-.venv\Scripts\pip install -e .          # 或 pip install fastapi uvicorn httpx pydantic python-multipart
-.venv\Scripts\python -m uvicorn server.app:app --host 127.0.0.1 --port 8642
-
-# 2. 前端（开发模式，可选；仓库已含构建产物时可跳过）
-cd frontend && npm install && npm run build
-
-# 3. 打开浏览器
-#    http://127.0.0.1:8642/
+.venv\Scripts\pip install -e ".[dev]"
+$env:DEVWB_HOME = (Join-Path (Get-Location) "workspace")
+python -m uvicorn server.app:app --host 127.0.0.1 --port 8642
 ```
 
-> 内置默认 Provider 为 `mock-demo`（离线演示）：无需任何 API Key 即可跑通全流程。接真实模型时编辑 `configs/providers.json`，将 `base_url` 指向任意 OpenAI 兼容服务，并设置对应环境变量（如 `DEVWB_PROVIDER__OFFICIAL__API_KEY`）。**Key 只从环境变量读取，绝不落盘。**
+打开 <http://127.0.0.1:8642/>；API 文档位于 <http://127.0.0.1:8642/api/docs>。
 
-### 运行测试
+### 前端开发模式
 
-```bash
-.venv\Scripts\python -m pytest tests -W ignore
+```powershell
+cd frontend
+npm install --cache .npm-cache
+npm run dev
 ```
+
+Vite 开发服务器会把 `/api` 代理到 `http://127.0.0.1:8642`。生产模式先执行 `npm run build`，后端会从 `frontend/dist` 提供静态驾驶舱。
+
+### Provider
+
+默认使用 deterministic provider，不需要密钥即可运行控制链路；任务审核接口不传 `status` 时会调用内置 provider（deterministic 模式按任务描述/验收字段审核，real 模式调用 OpenAI 兼容 `/chat/completions`；也可启用本机 Codex CLI 适配器。接入 OpenAI 兼容服务时设置：
+
+- `DEVWB_PROVIDER_BASE_URL`
+- `DEVWB_PROVIDER_API_KEY`
+- `DEVWB_PROVIDER_MODEL`
+
+启用本机 Codex（本次已用 glm-5.3-flash 验证）时设置 `DEVWB_CODEX_ENABLED=true`、`DEVWB_PROVIDER_MODEL=glm-5.3-flash`、`DEVWB_CODEX_CONTEXT_WINDOW=500000`。适配器调用 `codex exec --ephemeral --json`，不会读取或写入项目密钥；需要 Codex CLI 可执行文件在 PATH 中。
+
+密钥只从环境变量读取，不写入项目文件。
+
+任务与执行面板中，点击任务行会打开自定义详情抽屉，展示验收标准、每次 ExecutionRun、MCP 回执、TestRun/CI 和 Workbench/Acceptance 结论；v2 页面不依赖浏览器原生 prompt/alert/confirm。
+
+## 测试与验证
+
+当前自动化回归结果：`22 passed`（deterministic 与 Codex GLM provider 均已回归），但这不等同于产品负责人完成的人工验收；人工验收仍需按下方 HTTP 序列执行。真实页面验收还覆盖仓库登记控制台、项目控制室自定义任务详情抽屉、失败返工与执行历史。
+
+```powershell
+python -m pytest tests -q
+python -m py_compile server\app.py server\api\v2.py server\core\ci.py server\core\db.py server\core\errors.py server\core\provider.py server\core\service.py server\core\workspace.py
+cd frontend
+npm run typecheck
+npm run build
+```
+
+正式端到端测试在 `tests/test_phase1_api.py`，覆盖：真实文件变更验证、非 Git 已存在文件修改、AI 审核强批、MCP 幂等与同 `report_id` 改 payload 冲突、过期执行拒绝、superseded 任务状态保护、artifact_refs 项目隔离、MCP 回执非空字段与 supersede 原因契约、CI 命令安全、workspace 嵌套隔离和项目隔离。测试还会确认未产生 WorkbenchConclusion 或机器检查失败时不能直接完成人工验收，并验证 PromptInstance 保存审核提供方、审核状态和任务上下文。
+
+可用 PowerShell/HTTP 做一次手工验收：先按“快速开始”启动服务，创建一个项目/模块/特性/任务；对任务执行审核、批准、生成提示词和执行；在项目返回的 `workspace_path` 中实际创建或修改文件，再用执行返回的 `mcp_token` 调用 `POST /api/v2/mcp/receipts`；随后运行 `POST /api/v2/projects/{project_id}/tests`、`POST /api/v2/executions/{execution_id}/conclusion`，最后由产品负责人调用 `POST /api/v2/executions/{execution_id}/acceptance`。验收时还应人为制造一次失败总结，并确认再次执行产生新的 ExecutionRun、旧执行保留为 `rework_required`。
 
 ## 目录结构
 
-```
+```text
 devworkbench/
-├─ server/                  # FastAPI 服务端
-│  ├─ app.py                # 应用装配（127.0.0.1 强制绑定）
-│  ├─ api/                  # REST 路由（projects/pipelines/engineering/system…）
-│  └─ core/                 # 领域服务
-│     ├─ pipeline.py        #   FR-01 七阶段状态机 + 滚动底稿
-│     ├─ orchestrator.py    #   FR-04 编排器（DAG/输入包/预算/交接摘要）
-│     ├─ scanner.py         #   FR-03 只读扫描
-│     ├─ persist.py         #   原子写/.bak/前置 front matter/轻量锁
-│     ├─ provider.py        #   Provider 抽象（OpenAI 兼容 + mock）
-│     ├─ sanitize.py        #   脱敏规则引擎
-│     ├─ constraints.py     #   硬约束包注入与冲突检测
-│     ├─ exporters.py       #   FR-08 适配导出
-│     └─ backup.py          #   每日快照调度
-├─ frontend/                # Vue 3 SPA（构建产物 dist/ 随服务端分发）
-├─ configs/                 # 产品级配置（热加载：改动 5s 内生效）
-│  ├─ providers.json        #   Provider 注册（脱敏）
-│  ├─ complexity-map.json   #   复杂度→模块组合映射
-│  ├─ constraints-package.md#   通用硬约束包（版本化）
-│  ├─ sanitize-rules.json   #   脱敏正则
-│  ├─ templates/            #   目录模板
-│  └─ modules/              #   10 模块 + FR-01 七阶段角色提示词
-├─ workspace/               # 项目数据根（可经 DEVWB_HOME 重定向）
-├─ docs/                    # 需求规格说明书 / 设计文档 / 交互原型 / drawio 图
-└─ tests/                   # pytest 冒烟（覆盖 FR-01/03/04/05/08 主链路）
+├─ server/
+│  ├─ app.py                 # FastAPI 装配、内置 MCP、静态前端
+│  ├─ api/v2.py              # v2 控制室 REST API
+│  └─ core/
+│     ├─ db.py               # SQLite schema、事务与 JSON 辅助
+│     ├─ service.py          # 项目、产物、任务、执行、回执、结论
+│     ├─ workspace.py        # changed_files 工作区验证
+│     ├─ ci.py               # allowlist CI/TestRun runner
+│     └─ provider.py         # deterministic/OpenAI-compatible provider
+├─ frontend/                 # v2 Vue 3 驾驶舱
+├─ tests/                    # 正式后端集成测试
+├─ docs/                     # 历史原型与设计资产
+├─ legacy/v1/                # v1 归档实现，只读参考
+└─ workspace/                # 本地运行数据（不提交）
 ```
 
-## 项目数据布局（每个项目）
+## 规划与边界
 
-```
-workspace/projects/<项目名>/
-├─ project.json / rules.md / tools.json
-├─ docs/需求/          滚动底稿.md · 阶段记录/S1~S7-*.md
-├─ analysis/           结构画像.md · 规整建议.md · 扫描摘要.json
-├─ pipeline/           state/index.json · tasks.json · orchestration/<环>/（input/output/handoff/meta 全量落盘）
-├─ prompts/            <模块>/<任务>/v<N>.md（front matter 版本链）
-├─ testcases/          <任务>/用例集.md
-└─ exports/            spec-kit/ · taskmaster/ · …（含 meta.json 溯源）
-```
+- [v2 重建讨论定稿](../v2-重建规划/20260928-新定位与重建决策-讨论定稿.md)
+- [迁移清单与自举模拟](../v2-重建规划/20260928-迁移清单与自举模拟方案.md)
+- v1 归档标签：`v1.2.2-archive`
 
-## 环境变量
-
-| 变量 | 默认 | 说明 |
-|---|---|---|
-| `DEVWB_HOME` | `./workspace` | 项目数据根 |
-| `DEVWB_CONFIG_DIR` | `./configs` | 产品级配置目录 |
-| `DEVWB_BACKUP_DIR` | `./backups` | 备份快照目录 |
-| `DEVWB_PORT` | `8642` | `python -m server.app` 启动端口 |
-| `DEVWB_PROVIDER__<NAME>__API_KEY` | — | 各 Provider 的 Key（仅环境变量，G-03） |
-
-## 安全须知（务必阅读）
-
-1. **仅限本机使用**：服务强制绑定 `127.0.0.1`，无鉴权。局域网/公网暴露前必须先实施门禁鉴权与 HTTPS（SRS FU-02/FU-05 前置）。
-2. **外发知情**：任何模型调用前界面会强制弹出"Provider + 文档清单 + 估算字符量"确认。
-3. **脱敏门禁**：复制/导出强制过正则规则（block 级阻断，confirm 级逐条裁决），宁可阻断不放行。
-4. **备份不含 Key**：Key 不在数据树内，快照前还会再做一次 Key 扫描。
-
-## 设计与需求文档
-
-完整追溯链见 [`docs/`](docs/)：
-
-- 需求：`docs/需求/开发工作台需求规格说明书-V1.2.md`（V1.2.2 定稿）
-- 设计：`docs/设计/01~07`（总体/数据/接口/核心机制/POC/界面/复核）
-- 原型：`docs/原型/开发工作台-交互原型-V1.0.html`（单文件可离线打开）
-- 图示：`docs/assets/*.drawio`（CON-12 标准产物格式）
-
-## 路线图
-
-- [x] **V1**（本仓库）：localhost 单机全功能闭环
-- [ ] V1.x：批次 0 POC（AOCI-CODE / tree-sitter 结构画像、预算系数校准）、drawio 只读预览
-- [ ] V2：局域网共享（HTTPS + 账号门禁）、代码切片注入、Git 深度集成、Token 统计
-
-## License
-
-[MIT](LICENSE)
+下一步由产品负责人进行人工验收：用一个真实小特性在驾驶舱/API 走完执行、回执、CI、总结和验收，并确认失败打回后的返工记录是否符合预期。

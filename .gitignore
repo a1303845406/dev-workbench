@@ -12,9 +12,11 @@ venv/
 node_modules/
 frontend/dist/
 frontend/.tmp/
+frontend/.npm-cache/
 *.local
 
 # --- Runtime data (product data roots) ---
+workspace/*.sqlite3
 workspace/projects/*
 workspace/logs/*
 backups/*
