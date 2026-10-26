@@ -121,7 +121,7 @@ onMounted(() => { loadProjects().catch(e => { error.value = String(e) }) })
   <div class="shell">
     <header>
       <div><span class="mark">⌘</span><strong>开发工作台</strong><small> Dev Workbench · v2</small></div>
-      <div class="header-actions"><span class="status-dot">●</span>本地控制室 <a class="docs-link" href="/api/docs" target="_blank">API 文档</a><form class="project-create" @submit.prevent="createProject"><input v-model="projectName" aria-label="项目名称" placeholder="项目名称" :disabled="busy"><button type="submit" :disabled="busy || !projectName.trim()">+ 新建项目</button></form></div>
+      <div class="header-actions"><span class="status-dot">●</span>本地控制室 <a class="docs-link" href="/api/docs" target="_blank">API 文档</a><form class="project-create" @submit.prevent="createProject"><input v-model="projectName" aria-label="项目名称" placeholder="输入项目名称" required :disabled="busy"><button type="submit" :disabled="busy">+ 新建项目</button></form></div>
     </header>
     <main>
       <aside>
