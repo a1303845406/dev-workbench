@@ -1,3 +1,13 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["apps/api/src"]
+
+[tool.setuptools.package-data]
+devworkbench = ["infrastructure/persistence/schema.sql"]
+
 [project]
 name = "devworkbench"
 version = "2.0.0"
@@ -16,4 +26,4 @@ dev = ["pytest>=8.0", "pytest-asyncio>=0.23"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-# asyncio_mode = "auto"  # Enable when pytest-asyncio is installed
+pythonpath = ["apps/api/src", "."]

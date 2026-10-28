@@ -7,21 +7,25 @@ venv/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+/build/
+/dist/
 
 # --- Node / frontend ---
 node_modules/
-frontend/dist/
-frontend/.tmp/
-frontend/.npm-cache/
+apps/web/dist/
+apps/web/.tmp/
+apps/web/.npm-cache/
 *.local
 
 # --- Runtime data (product data roots) ---
-workspace/private/
+workspace/*
+!workspace/.gitkeep
 .env*
 !.env.example
 workspace/*.sqlite3
 workspace/projects/*
 workspace/logs/*
+workspace/planning-*.png
 backups/*
 !backups/.gitkeep
 !workspace/.gitkeep
@@ -31,6 +35,8 @@ logs/
 # --- IDE / OS ---
 .idea/
 .vscode/
+# Machine-local agent MCP configuration (absolute executable paths)
+.zcode/
 .DS_Store
 Thumbs.db
 

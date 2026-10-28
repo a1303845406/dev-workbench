@@ -1,0 +1,142 @@
+#AOCI-CODE-VOLUME: 1
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/===
+.env.example[FC5T]: F:列出可导出的数据目录、前端产物和模型环境配置 | R:code:apps/api/src/devworkbench/shared/paths.py,code:apps/api/src/devworkbench/infrastructure/models/settings.py | A:DEVWB_HOME,DEVWB_WEB_DIST,DEVWB_PROVIDER_API_KEY | S:仅作配置说明，应用不自动加载此文件。
+.gitattributes[FV3T]: F:统一文本换行及图片二进制识别 | R:- | A:- | S:批处理和PowerShell使用CRLF，其余文本LF。
+.gitignore[FS7T]: F:隔离密钥、运行数据、依赖构建缓存及机器代理配置 | R:code:.env.example | A:- | S:workspace只保留占位文件；环境示例可提交，真实环境配置、备份与含本机绝对路径的.zcode不提交。
+AGENTS.md[SG8S]: F:约束工程归属、数据保护及模型认知维护 | R:code:docs/architecture/工程目录与功能归属.md,code:docs/architecture/AOCI维护.md | A:- | S:AOCI条目须读取绑定源码由模型创作；不能生成假收据。生成不等于批准，未经授权不得付费调用或提交。
+LICENSE[SG5T]: F:授予MIT使用修改分发许可并声明免责 | R:- | A:MIT | S:分发须保留版权和许可声明。
+README.md[SG8S]: F:说明共创阶段、运行入口、隐私边界与验收证据 | R:code:start-devworkbench.bat,code:docs/contracts/planning-api.md,code:docs/architecture/工程目录与功能归属.md | A:- | S:仅单机可信用户与单进程；三项设计批准后仍不开放编码；历史付费样例验收不能代表真实业务批准。
+pyproject.toml[FV7T]: F:配置Python源码包、运行依赖与测试导入路径 | R:code:apps/api/src/devworkbench/infrastructure/persistence/schema.sql,code:.github/workflows/ci.yml | A:devworkbench,dev | S:src-layout由setuptools发现并打包schema.sql；pytest显式加入源码与仓库根，部署不能依赖旧server包。
+start-devworkbench.bat[OV7T]: F:从仓库目录启动本地FastAPI工作台 | R:code:apps/api/src/devworkbench/main.py | A:127.0.0.1:8642 | S:使用--app-dir apps/api/src导入devworkbench.main并绑定workspace数据根；不另起替代生产前端服务。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/.github/workflows/===
+ci.yml[OQ7T]: F:在Windows验证Python回归、前端类型和构建 | R:code:pyproject.toml,code:apps/web/package.json | A:push,pull_request | S:固定Python3.10与Node20；安装editable包后执行含架构边界的完整测试。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/api/src/devworkbench/===
+__init__.py[RG2T]: F:声明后端应用Python包 | R:- | A:- | S:-
+main.py[EG8T]: F:组合API、异常脱敏、共创生命周期与静态页面 | R:code:apps/api/src/devworkbench/modules/planning/router.py,code:apps/api/src/devworkbench/modules/workbench/router.py,code:apps/api/src/devworkbench/modules/model_settings/router.py,code:apps/api/src/devworkbench/shared/paths.py | A:app,/api/health,/api/docs | S:启动把遗留运行标为中断，关闭取消任务；不回显校验输入；API未知路由不回退SPA，静态文件限制在产物目录。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/api/src/devworkbench/infrastructure/===
+__init__.py[RG2T]: F:声明外部设施适配包 | R:- | A:- | S:-
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/api/src/devworkbench/infrastructure/execution/===
+__init__.py[RW2T]: F:声明旧执行验证适配包 | R:- | A:- | S:-
+ci.py[IQ7T]: F:受限执行旧任务CI命令并保存日志结果 | R:code:apps/api/src/devworkbench/modules/workbench/application.py | A:run_command | S:命令白名单与参数检查不是OS沙箱；拒绝shell及路径穿越，超时最多300秒。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/api/src/devworkbench/infrastructure/models/===
+__init__.py[RA2T]: F:声明模型配置与调用适配包 | R:- | A:- | S:-
+provider.py[IA8S]: F:对接真实聊天API、本机Codex与旧任务模型审核 | R:code:apps/api/src/devworkbench/infrastructure/models/settings.py | A:Provider.complete,Provider.review,Provider.mode | S:Codex在临时目录只读运行；API记录白名单usage并拒绝length截断，不自动重试；线程取消不保证子进程停止。
+settings.py[IS8S]: F:验证并原子保存模型设置和加密凭据 | R:code:apps/api/src/devworkbench/shared/paths.py,code:apps/api/src/devworkbench/shared/errors.py | A:ModelSettings.public,ModelSettings.effective,ModelSettings.save,ModelSettings.reset | S:保存配置优先环境；Windows密钥绑定当前用户DPAPI，非Windows仅用环境密钥；public不返回明文密钥。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/api/src/devworkbench/infrastructure/persistence/===
+__init__.py[RD2T]: F:声明SQLite存储设施包 | R:- | A:- | S:-
+database.py[PD8T]: F:初始化SQLite并提供连接和原子事务 | R:code:apps/api/src/devworkbench/infrastructure/persistence/schema.sql,code:apps/api/src/devworkbench/shared/paths.py | A:Database.connect,Database.tx,database,jdump,jload | S:连接启用外键与WAL；写事务BEGIN IMMEDIATE，异常回滚；schema为随包发布的SQL资源。
+schema.sql[PD8T]: F:定义项目、版本、旧执行证据与共创工作区表 | R:code:apps/api/src/devworkbench/infrastructure/persistence/database.py | A:planning_workspaces,projects,task_cards,execution_runs,artifact_versions,events | S:共创状态为按项目主键存储的JSON，不替换旧表；外键级联删除依赖每条连接开启foreign_keys。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/api/src/devworkbench/infrastructure/search/===
+__init__.py[RN2T]: F:声明公网检索适配包 | R:- | A:- | S:-
+bing.py[IN7T]: F:受限获取Bing RSS公开摘要证据 | R:code:apps/api/src/devworkbench/modules/planning/application.py | A:search_web | S:只允许HTTPS的www/cn.bing.com搜索路径重定向，最多4次请求和500KB；至多6条摘要，不抓全文。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/api/src/devworkbench/infrastructure/workspaces/===
+__init__.py[RD2T]: F:声明工作区快照验证包 | R:- | A:- | S:-
+scanner.py[ID7S]: F:用文件摘要与Git状态核验旧执行声明的改动 | R:code:apps/api/src/devworkbench/modules/workbench/application.py | A:WorkspaceScanner.snapshot,WorkspaceScanner.verify | S:忽略Git与Python缓存；扫描只读，不把代理自报文件当作实际变更证据。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/api/src/devworkbench/modules/===
+__init__.py[RB2T]: F:声明按业务划分的后端模块包 | R:- | A:- | S:-
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/api/src/devworkbench/modules/model_settings/===
+__init__.py[RC2T]: F:声明模型设置HTTP模块 | R:- | A:- | S:-
+router.py[EC7T]: F:提供模型配置读写、恢复和授权连通测试 | R:code:apps/api/src/devworkbench/infrastructure/models/settings.py,code:apps/api/src/devworkbench/shared/http.py | A:/v2/settings/model | S:测试连接需明确授权且只发短消息，不保存设置或发送项目资料；失败仅返回脱敏诊断。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/api/src/devworkbench/modules/planning/===
+__init__.py[RB2T]: F:声明需求共创与设计审查模块 | R:- | A:- | S:-
+application.py[AW9M]: F:编排共创运行、不可变版本、局部拆分和阶段审批 | R:code:apps/api/src/devworkbench/modules/planning/domain.py,code:apps/api/src/devworkbench/modules/planning/prompts.py,code:apps/api/src/devworkbench/infrastructure/persistence/database.py,code:apps/api/src/devworkbench/infrastructure/models/provider.py,code:apps/api/src/devworkbench/infrastructure/search/bing.py | A:Planning.get,Planning.begin,Planning.generate,Planning.act,Planning.cancel | S:事务校验expected_revision；批准绑定版本和上游，变更使下游失效；候选不自动采纳。内存任务注册只支持单进程；取消拒绝迟到结果但不保证外部停止计费。失败正文脱敏留证，不自动重试。
+domain.py[DB8S]: F:定义严格候选结构并计算图约束和审查缺口 | R:code:apps/api/src/devworkbench/modules/planning/application.py | A:Requirement,Decomposition,Design,normalize,review_checks | S:拒绝未知字段、归属和依赖环；FR编号及特性覆盖仅结构检查，不证明设计语义正确。
+prompts.py[DA8T]: F:构造内置知识和完整模型响应Schema提示 | R:code:apps/api/src/devworkbench/modules/planning/domain.py | A:BUILTINS,prompt_for | S:Schema约束外层reply/citations/proposal且提升$defs；来源仅作不可信资料，局部重拆须保留目标外全部内容。
+router.py[EB8T]: F:暴露共创状态、异步生成、版本操作和审查API | R:code:apps/api/src/devworkbench/modules/planning/application.py,code:apps/api/src/devworkbench/shared/http.py | A:/v2/projects/{project_id}/planning | S:所有变更携带严格expected_revision；生成只返回202并启动后台任务；读取会首次导入旧需求并启用新流程保护。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/api/src/devworkbench/modules/workbench/===
+__init__.py[RB2T]: F:声明项目及旧执行兼容模块 | R:- | A:- | S:-
+application.py[AB9L]: F:管理项目产物、仓库基线和旧任务执行验证闭环 | R:code:apps/api/src/devworkbench/infrastructure/persistence/database.py,code:apps/api/src/devworkbench/infrastructure/workspaces/scanner.py,code:apps/api/src/devworkbench/infrastructure/execution/ci.py,code:apps/api/src/devworkbench/infrastructure/models/provider.py | A:Workbench.create_project,Workbench.get_project,Workbench.create_task,Workbench.start_execution,Workbench.require_legacy_execution | S:新共创项目在写事务内拒绝旧编码任务、提示词和执行，避免接入竞态；既有证据保留，代理自报完成须经工作区核验及后续验收。
+router.py[EB7S]: F:保持项目与旧执行证据HTTP契约 | R:code:apps/api/src/devworkbench/modules/workbench/application.py | A:/v2/projects,/v2/artifacts,/v2/tasks | S:未接入共创的项目保留旧行为；已接入项目是否可执行由应用层检查，不依靠隐藏按钮。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/api/src/devworkbench/shared/===
+__init__.py[RG2T]: F:声明不依赖业务的后端共用设施 | R:- | A:- | S:-
+errors.py[CG5T]: F:承载业务可公开错误码、状态和明细 | R:code:apps/api/src/devworkbench/main.py | A:DomainError | S:-
+http.py[MS7T]: F:拒绝跨站或异源的本地凭据操作请求 | R:code:apps/api/src/devworkbench/shared/errors.py | A:local_request | S:无Origin的本地工具请求仍可通过；此校验不是身份认证，部署须保持可信本机边界。
+paths.py[RC7T]: F:计算稳定数据和前端产物目录 | R:code:apps/api/src/devworkbench/infrastructure/persistence/database.py,code:apps/api/src/devworkbench/main.py | A:data_root,web_dist | S:默认按源码仓库定位不随cwd；安装部署需显式DEVWB_HOME与DEVWB_WEB_DIST，显式相对路径仍相对cwd。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/web/===
+index.html[EU5T]: F:提供Vue挂载点与浏览器应用入口 | R:code:apps/web/src/main.ts | A:app | S:-
+package-lock.json[FV6L]: F:锁定前端依赖及平台构建包解析 | R:code:apps/web/package.json | A:npm ci | S:由npm维护；迁移目录不应丢弃锁文件或用不受约束的重新解析替代。
+package.json[FV7T]: F:定义前端运行依赖与检查构建命令 | R:code:apps/web/vite.config.ts,code:apps/web/tsconfig.json | A:dev,build,typecheck,preview | S:私有包且要求Node20以上；typecheck与build分离，构建成功不替代类型检查。
+tsconfig.json[FV6T]: F:启用严格Vue与TypeScript浏览器类型检查 | R:code:apps/web/package.json | A:- | S:-
+vite.config.ts[FV6T]: F:配置Vue构建和本地API开发代理 | R:code:apps/web/package.json | A:- | S:开发端口5173代理8642；生产由FastAPI提供dist，另开Vite不会更新现有工作台。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/web/src/app/===
+App.vue[AU8T]: F:组织项目选择、共创页面、模型设置和历史证据抽屉 | R:code:apps/web/src/features/planning/PlanningWorkspace.vue,code:apps/web/src/features/model-settings/ModelSettings.vue,code:apps/web/src/shared/api/http.ts | A:- | S:切换项目或视图等待未保存内容确认；旧任务仅呈现证据，不恢复手工CRUD作为主入口。
+styles.css[FU5S]: F:定义工作台全局视觉与基础组件布局 | R:code:apps/web/src/app/App.vue | A:- | S:-
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/web/src/features/model-settings/===
+ModelSettings.vue[AU7T]: F:编辑模型配置并显式授权独立连接测试 | R:code:apps/web/src/shared/api/http.ts | A:saved,close | S:密钥不写localStorage且不回显；测试与保存分离，保留替换清除密钥是不同操作。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/web/src/features/planning/===
+PlanningWorkspace.vue[AU9S]: F:实现对话资料证据、版本比较、递归拆分及联合设计审查 | R:code:apps/web/src/features/planning/types.ts,code:apps/web/src/shared/api/http.ts,code:apps/web/src/shared/ui/ConfirmDialog.vue,code:apps/web/src/features/planning/planning.css | A:projectId,settings,changed,mayLeave | S:轮询不覆盖手工编辑；采纳和批准各自确认，编码始终锁定。原型移除活动内容并以空sandbox和拒绝外连CSP隔离；切换设计标签退出对比以显示预览。
+planning.css[FU5S]: F:定义三栏共创界面、树、版本与窄屏样式 | R:code:apps/web/src/features/planning/PlanningWorkspace.vue | A:- | S:-
+types.ts[DB6T]: F:描述共创状态、版本、节点、来源和运行证据结构 | R:code:docs/contracts/planning-api.md | A:Kind,PlanningNode,Version,Run,State,Source | S:execution_locked固定为true；供应商usage可缺失，不能当作完整账单。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/web/src/===
+main.ts[EU6T]: F:加载应用壳和全局样式挂载Vue | R:code:apps/web/src/app/App.vue,code:apps/web/src/app/styles.css | A:- | S:-
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/web/src/shared/api/===
+http.ts[IN6T]: F:统一JSON请求、服务错误显示与超时取消 | R:- | A:request,get,post | S:默认15秒超时只取消浏览器请求；不能据此认为后端模型运行已取消。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/apps/web/src/shared/ui/===
+ConfirmDialog.vue[CU6T]: F:以异步HTML对话框确认危险或未保存操作 | R:- | A:ask | S:原生dialog而非window.confirm；取消和卸载返回false，关闭恢复触发焦点，并防止重入。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/docs/architecture/===
+AOCI维护.md[SQ7T]: F:规定认知索引范围、完整批次维护和验证程序 | R:code:AGENTS.md | A:- | S:真实数据库不入索引；模型读取源码创作语义，不手造收据或额外调用付费index build。
+工程目录与功能归属.md[SG8T]: F:规定模块化单体目录、依赖方向及新能力归属 | R:code:tests/architecture/test_boundaries.py,code:AGENTS.md | A:- | S:按业务纵切并在模块内分层，不提前微服务化；shared和基础设施不得反向依赖业务；冻结验收历史不改写。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/docs/contracts/===
+planning-api.md[SB8T]: F:定义共创HTTP状态版本及模型运行证据契约 | R:code:apps/api/src/devworkbench/modules/planning/router.py,code:apps/web/src/features/planning/types.ts | A:/api/v2/projects/{pid}/planning | S:采纳不等于批准；usage缺失表示未知，失败正文只作本地脱敏证据，不能当成版本或HTML。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/docs/product/===
+AI共创需求与分层设计-产品交互稿-V0.1.md[SB8M]: F:阐明人机需求共创、递归拆分及三项设计的产品流程 | R:code:docs/contracts/planning-api.md | A:- | S:先人工确认拆分再做详细设计原型和数据设计，联合批准仍不授权编码；待讨论项不冒充已批准产品决策。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/tests/===
+__init__.py[TQ2T]: F:声明测试支持可导入的根包 | R:- | A:- | S:-
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/tests/api/===
+__init__.py[TQ2T]: F:声明后端契约回归测试包 | R:- | A:- | S:-
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/tests/api/infrastructure/===
+__init__.py[TQ2T]: F:声明外部设施适配测试包 | R:- | A:- | S:-
+test_provider.py[TA7T]: F:验证模型usage脱敏、截断拒绝和响应外层Schema | R:code:apps/api/src/devworkbench/infrastructure/models/provider.py,code:apps/api/src/devworkbench/modules/planning/prompts.py | A:- | S:mock传输避免付费；只白名单整数usage与安全结束原因，不能透传供应商任意元数据。
+test_search.py[TN7T]: F:验证Bing区域跳转及不安全重定向和大小限制 | R:code:apps/api/src/devworkbench/infrastructure/search/bing.py | A:- | S:测试使用模拟HTTP，不把离线回归当真实公网搜索成功证据。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/tests/api/model_settings/===
+__init__.py[TQ2T]: F:声明模型配置接口测试包 | R:- | A:- | S:-
+test_settings.py[TS7S]: F:验证凭据保存脱敏、来源限制及真实调用模式选择 | R:code:apps/api/src/devworkbench/infrastructure/models/settings.py,code:apps/api/src/devworkbench/modules/model_settings/router.py | A:- | S:临时数据隔离并模拟外部调用；验证失败不保存配置，也不悄悄回退规则模式。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/tests/api/planning/===
+__init__.py[TQ2T]: F:声明共创审查回归测试包 | R:- | A:- | S:-
+test_application.py[TB8M]: F:验证阶段门禁、不可变版本、迟到取消及安全诊断 | R:code:apps/api/src/devworkbench/modules/planning/application.py,code:tests/support/planning.py | A:- | S:FakeProvider只供测试；覆盖局部重拆越界、审查反馈进上下文、失败正文脱敏和已批准仍禁止编码。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/tests/api/workbench/===
+__init__.py[TQ2T]: F:声明旧工作台兼容回归测试包 | R:- | A:- | S:-
+test_api.py[TB8L]: F:验证项目产物到执行回执CI和人工验收的兼容闭环 | R:code:apps/api/src/devworkbench/modules/workbench/application.py,code:tests/support/workbench.py | A:- | S:临时工作区与模拟Provider防止改真实项目或计费；执行回执必须结合实际文件变化而非仅信代理声明。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/tests/architecture/===
+__init__.py[TQ2T]: F:声明架构边界检查包 | R:- | A:- | S:-
+test_boundaries.py[TQ8S]: F:检查后端层依赖、前端feature边界和稳定路径 | R:code:docs/architecture/工程目录与功能归属.md,code:apps/api/src/devworkbench/shared/paths.py | A:python_violation,web_violation | S:要求Python绝对导入；别名需新增显式解析，静态导入检查不声称拦截所有动态导入。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/tests/manual/===
+__init__.py[TQ2T]: F:声明隔离人工浏览器回归包 | R:- | A:- | S:-
+planning_server.py[TQ6T]: F:用临时数据与确定模拟回复启动浏览器验收服务 | R:code:tests/support/planning.py,code:apps/api/src/devworkbench/main.py | A:127.0.0.1:18642 | S:独立进程替换Provider并显式标记模拟；不是生产模型质量或真实搜索证据。
+
+===D:/workspace/Others/副业/开发工作台/devworkbench/tests/support/===
+__init__.py[TQ2T]: F:声明共享测试数据构造包 | R:- | A:- | S:-
+planning.py[TQ5T]: F:构造标准需求递归拆分设计和可控Provider样例 | R:code:tests/api/planning/test_application.py | A:requirement,node,decomposition,design,FakeProvider | S:仅测试可依赖，生产不能导入；返回模拟JSON而非真实模型响应。
+workbench.py[TQ5T]: F:创建隔离旧项目模块特性和任务的完整测试流程 | R:code:tests/api/workbench/test_api.py | A:create_flow | S:包含外项目父节点拒绝断言，用于保护项目归属隔离。

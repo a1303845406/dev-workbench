@@ -1,130 +1,126 @@
 # Dev Workbench v2
 
-> 本地 B/S 开发指挥中枢：管理项目、版本化产物、任务卡、执行回执、CI 证据与人工验收。外部 Agent 是执行者，最终决策权保留给人。
+> 本地 B/S 人机共创工作台。先共同把需求想清楚，再由 AI 设计与分层拆分；阶段推进由人审查决定，不以生成完成代替批准。
 
-## 第一阶段已实现
+## 当前主流程
 
-第一阶段验证一个真实的最小开发控制闭环：
+`持续讨论 + 知识/经验/检索 → 标准需求 → 人工批准需求基线 → 整体设计与递归拆分 → 人工批准拆分 → 详细设计 / 原型 / 数据设计 → 联合人工审查`
 
-`Project → 六个项目级 ArtifactVersion → Module/Feature/TaskCard → PromptInstance → ExecutionRun → 本地 MCP ExecutionReceipt → changed_files 工作区扫描 → 独立 TestRun/CI → WorkbenchConclusion → AcceptanceConclusion`
+### 1. 需求共创
 
-已覆盖：
+- 左侧持续对话，中间版本化底稿，右侧资料与引用证据；不再以手填模块、特性和任务表单作为入口。
+- 内置轻量 SRS 与设计检查知识；可补充当前项目的知识文本、项目资料和经验。资料只属于当前项目，不自动晋升为全局经验。
+- 可选 Bing RSS 公网检索：单独勾选授权并输入公开查询词，不把整个需求自动作为查询发送。展示真实摘要、链接、调用状态；无结果或失败不会伪造证据。当前仅检索摘要，不抓取全文。
+- 标准需求包含 12 节：背景与问题、目标与成功指标、用户与场景、范围与非目标、流程与业务规则、功能需求、数据与接口、非功能需求、约束与假设、验收与追踪、风险与待确认、决策与参考。功能需求使用 `FR-001` 等编号。
+- “继续讨论”用于澄清；“整理标准需求候选稿”生成候选版本。采纳为底稿与人工批准是两次不同动作。
 
-- SQLite WAL 事务库：关系、幂等、事件和重启恢复；文件系统保存 CI 日志等证据。
-- 不可变产物版本链：新版本通过 `based_on_version_id` 关联，不覆盖历史。
-- TaskCard 计划状态和 ExecutionRun 执行状态分离；需求变更可将旧卡标记 `superseded`。
-- AI 一审失败时支持带理由人工强制批准。
-- 本地 MCP 回执接口：`POST /api/v2/mcp/receipts`，每次执行令牌隔离，重复 `report_id` 幂等。
-- changed_files 由工作台扫描验证，不接受 Agent 自报作为唯一事实；支持 Git 工作区和非 Git 工作区。
-- 项目 workspace 绑定唯一，拒绝两个项目共享同一个工作目录。
-- 独立 TestRun/CI runner：命令 allowlist、超时、禁止 shell 运算符和路径逃逸。
-- Workbench 总结、人工普通验收和带风险验收，所有关键动作写入事件流。
-- superseded 任务不能重新审核、批准或生成提示词；重复 `report_id` 只有 payload 完全一致时才视为幂等，否则拒绝冲突。
-- WorkbenchConclusion 仅接受 `passed`、`failed`、`rework_required`；CI 可执行入口必须是无路径的 allowlist 命令名。
-- 最小项目驾驶舱：项目列表、六节点产物、任务与执行状态、事件历史。
-- 仓库登记与状态：按项目登记本地仓库，展示 Git/非 Git、分支、提交和工作区变更；MCP token 只在执行启动后的当前页面会话展示，不写入执行查询结果。
-- 空工作区基线是有效事实；扫描不会把父级 Git 仓库的无关变更混入项目回执。
+### 2. 整体设计与分层拆分
 
-第一阶段**不宣称**自动驱动 Codex/DSH/Cursor，也不伪造最终人工验收；当前人工验收需要由产品负责人在驾驶舱或 API 中完成。
+- 基于已批准需求生成整体方案与 `模块 → 子模块 → … → 特性` 多层树，不固定为两层。
+- 每个节点记录职责、非职责、需求编号、验收、依赖和拆分理由。所属树与依赖关系分离，拒绝循环和无效引用。
+- 树与详情联动，展示需求覆盖、候选/底稿对照、历史版本和审查意见；支持选中模块后的局部重拆，禁止越界修改其他分支。
+- 可退回并填写修改意见；下一次模型调用包含当前各阶段审查记录。整体拆分包批准后才能进入下一阶段。
 
-## 技术栈
+### 3. 三项设计联合审查
 
-- 后端：Python 3.10+、FastAPI、Pydantic、Uvicorn、httpx
-- 前端：Vue 3、TypeScript、Vite
-- 存储：SQLite（控制关系）+ 文件系统（项目工作区和证据）
-- 运行方式：单个 FastAPI 进程同时提供 REST、内置本地 MCP 接口和构建后的前端
+- 详细设计：模块/特性行为、接口、状态、异常和测试关注点。
+- 原型：HTML 静态预览与源码；隔离 iframe + CSP 禁止脚本、网络、表单、同源访问与嵌套内容，不是可执行应用。
+- 数据设计：实体、约束、索引、状态、访问与迁移等设计说明。
+- 三项作为同一不可变版本共同评审、退回与批准，并绑定需求和拆分版本。结构检查验证特性编号覆盖，不声称能自动证明语义一致或设计正确。
+- **即使三项设计已批准，也不会自动生成编码任务、提示词或开始执行。后续流程待产品负责人确认。**
 
-## 快速开始
+### 版本、运行与兼容边界
 
-Windows 下推荐直接双击或运行仓库根目录的 `start-devworkbench.bat`：脚本会设置 `DEVWB_HOME`、检测前端构建产物、后台轮询 `/api/health`，服务就绪后自动用默认浏览器打开驾驶舱。
+- 内容保存为不可变版本；审批只绑定当前具体版本。上游变更使下游版本/审批失效，历史证据保留。
+- API 使用 `expected_revision` 乐观并发控制；迟到结果不可覆盖更新后的底稿。前端轮询不覆盖手工编辑，离开未保存内容前提示。
+- AI 调用异步运行，刷新可查看结果；支持取消。重启时运行中的任务标记中断，不静默重发或重复计费。取消仅保证不采纳迟到结果，不保证外部请求/Codex 子进程立即停止计费。
+- 规则模式不能 AI 共创；真实 API/Codex 失败会明确失败，不用演示或规则内容伪装 AI。JSON、结构字段/树、HTTP、超时和截断有分类提示，不自动重试；API 返回的结束原因和 token 用量可在运行依据查看。校验失败的模型正文（最多 500,000 字符）在密钥脱敏后留于本项目运行记录，可能仍含项目敏感内容，不会自动变为版本。
+- 旧项目首次打开共创区时将旧需求导入为待审底稿，并启用新流程保护；旧产物、任务、执行回执、CI 与验收仍在“历史执行证据”中可查，不删除原记录。
+- 已接入共创的项目，后端拒绝从旧接口新建编码任务、生成执行提示词、启动执行或改写旧产物；未接入项目的旧 API 保持兼容。已经在运行的历史执行不会被强制终止。
+- 当前是单机单服务进程设计；不支持多 worker 共用运行任务注册表。资料为文本补充，没有文件解析/RAG、自动跨项目经验库或全局记忆晋升。
 
-### 后端
+## 技术栈与启动
+
+- 后端：Python 3.10+、FastAPI、Pydantic、Uvicorn、httpx。
+- 前端：Vue 3、TypeScript、Vite。
+- 存储：SQLite WAL + 本地文件；单个 FastAPI 进程提供 API 与构建后的前端。
+
+Windows 首次安装：
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\pip install -e ".[dev]"
-$env:DEVWB_HOME = (Join-Path (Get-Location) "workspace")
-python -m uvicorn server.app:app --host 127.0.0.1 --port 8642
+npm ci --prefix apps/web
+npm run typecheck --prefix apps/web
+npm run build --prefix apps/web
 ```
 
-打开 <http://127.0.0.1:8642/>；API 文档位于 <http://127.0.0.1:8642/api/docs>。
-
-### 前端开发模式
+运行根目录启动脚本，或：
 
 ```powershell
-cd frontend
-npm install --cache .npm-cache
-npm run dev
+.venv\Scripts\Activate.ps1
+$env:DEVWB_HOME = (Join-Path (Get-Location) "workspace")
+python -m uvicorn devworkbench.main:app --app-dir apps/api/src --host 127.0.0.1 --port 8642
 ```
 
-Vite 开发服务器会把 `/api` 代理到 `http://127.0.0.1:8642`。生产模式先执行 `npm run build`，后端会从 `frontend/dist` 提供静态驾驶舱。
+工作台：<http://127.0.0.1:8642/>；API：<http://127.0.0.1:8642/api/docs>。后端修改后需重启；前端修改后需重新构建并刷新，不要只启动另一个 Vite 服务。开发模式可在前端目录运行 `npm run dev`（代理后端 8642）。
 
-### Provider
+## 模型设置与隐私
 
-默认使用 deterministic provider，不需要密钥即可运行控制链路；任务审核接口不传 `status` 时会调用内置 provider（deterministic 模式按任务描述/验收字段审核，real 模式调用 OpenAI 兼容 `/chat/completions`；也可启用本机 Codex CLI 适配器。接入 OpenAI 兼容服务时设置：
+打开右上角“模型服务”，选择 API、本机 Codex 或规则测试。API 基础地址例如 `https://api.deepseek.com`，程序追加 `/chat/completions`。本机 Codex 需自行安装并登录。
 
-- `DEVWB_PROVIDER_BASE_URL`
-- `DEVWB_PROVIDER_API_KEY`
-- `DEVWB_PROVIDER_MODEL`
+- 密钥支持保留/替换/清除，不回显、不存浏览器 localStorage、不写项目事件。Windows 持久化使用当前用户 DPAPI；不应直接复制给其他 Windows 用户。非 Windows 请使用环境变量密钥。
+- “测试连接（不保存）”只发送短测试消息，需授权，可能计费，不发送项目内容。测试成功只代表连接与返回格式有效，不证明模型设计质量。
+- 保存后对后续调用生效，无需重启；保存设置优先于环境变量。“恢复环境配置”删除保存设置。
+- 共创时须明确授权向已配置模型发送对话、当前底稿、审查意见和项目资料；搜索授权独立。请勿加入不应外发的资料。
+- 环境配置：`DEVWB_PROVIDER_BASE_URL`、`DEVWB_PROVIDER_API_KEY`、`DEVWB_PROVIDER_MODEL`；Codex 使用 `DEVWB_CODEX_ENABLED=1` 和模型名称。无完整配置则为规则测试模式。
+- 设置保存在 `DEVWB_HOME/private`；密钥和运行数据不应提交仓库。使用 HTTPS API。
+- 仅供本机可信用户使用，保持绑定 `127.0.0.1`，不向公网开放。新共创接口与模型设置拒绝跨站请求，但本产品没有多用户认证/权限隔离。同一 Windows 用户的其他进程可能解密 DPAPI 数据。
 
-启用本机 Codex（本次已用 glm-5.3-flash 验证）时设置 `DEVWB_CODEX_ENABLED=true`、`DEVWB_PROVIDER_MODEL=glm-5.3-flash`、`DEVWB_CODEX_CONTEXT_WINDOW=500000`。适配器调用 `codex exec --ephemeral --json`，不会读取或写入项目密钥；需要 Codex CLI 可执行文件在 PATH 中。
-
-### 页面配置模型服务
-
-点击页面右上角 **设置 · 模型服务**，即使尚未创建项目也可配置。
-
-- 选择真实模型 API、本机 Codex 或规则测试。规则测试不是 AI，不发生外部调用。
-- API 基础地址填写例如 `https://api.deepseek.com`，程序追加 `/chat/completions`；填写服务商支持的模型名称。
-- 密钥支持保留、替换、清除；不回显，不存浏览器 localStorage，不记录到项目事件。切换服务地址时请同时更换对应密钥。
-- **测试连接（不保存）** 只发送无项目内容的短消息，需勾选外发许可，可能产生费用；失败返回脱敏原因。HTTP 测试超时10秒；Codex以临时目录只读沙箱运行。
-- **保存并生效** 对后续请求立即生效，无需重启。已保存设置整体优先于环境变量；“恢复环境配置”删除保存设置后恢复环境变量/默认模式。
-- 默认数据目录下 `workspace/private/model-service.json` 保存设置（自定义 `DEVWB_HOME` 时相应改变）。Windows 新密钥经当前用户 DPAPI 加密，不能直接复制到另一用户机器使用；环境变量密钥保留为引用，不复制入配置。非 Windows 不支持新增密钥的安全持久化，请使用环境变量密钥并选择保留。
-- 真实 API/Codex 任务拆分调用或解析失败会明确失败，不再静默生成规则替代结果。当前拆分仍是已有任务的拆分提案，不代表完整需求规划已实现。
-
-安全边界：仅供本机可信用户使用，保持绑定127.0.0.1，不向公网暴露；同一Windows用户下的其他进程仍可能解密DPAPI密钥。HTTP会明文传输密钥，优先HTTPS。测试通过仅证明接口返回有效消息，不保证拆分质量。API密钥不要提交仓库。
-
-任务与执行面板中，点击任务行会打开自定义详情抽屉，展示验收标准、每次 ExecutionRun、MCP 回执、TestRun/CI 和 Workbench/Acceptance 结论；v2 页面不依赖浏览器原生 prompt/alert/confirm。
-
-## 测试与验证
-
-当前自动化回归结果：`42 passed`（本轮模型服务设置回归含 Windows DPAPI、密钥保留/清除、环境变量引用、连接测试成功/失败/超时、脱敏及真实API/Codex拆分分支的模拟测试）。真实页面自测使用独立数据目录和本机模拟模型服务，验证设置入口、测试不保存、保存生效、刷新不回显密钥、清除/恢复和失败提示；没有使用真实付费服务或证明本轮Codex外部连接成功。历史执行闭环证据不等同于本轮模型质量验证，也不能替代产品负责人最终验收。
+## 测试与验收
 
 ```powershell
 python -m pytest tests -q
-python -m py_compile server\app.py server\api\v2.py server\core\ci.py server\core\db.py server\core\errors.py server\core\provider.py server\core\service.py server\core\workspace.py
-cd frontend
-npm run typecheck
-npm run build
+python -m compileall -q apps/api/src
+npm run typecheck --prefix apps/web
+npm run build --prefix apps/web
 ```
 
-正式端到端测试在 `tests/test_phase1_api.py`，覆盖：真实文件变更验证、非 Git 已存在文件修改、AI 审核强批、MCP 幂等与同 `report_id` 改 payload 冲突、过期执行拒绝、superseded 任务状态保护、artifact_refs 项目隔离、MCP 回执非空字段与 supersede 原因契约、CI 命令安全、workspace 嵌套隔离和项目隔离。测试还会确认未产生 WorkbenchConclusion 或机器检查失败时不能直接完成人工验收，并验证 PromptInstance 保存审核提供方、审核状态和任务上下文。
+目录分层重构后的自动化结果：**101 passed**（含 12 项架构边界检查）；前端类型检查、生产构建与 `git diff --check` 通过。真实模型验收时的历史结果为 89 passed。
 
-可用 PowerShell/HTTP 做一次手工验收：先按“快速开始”启动服务，创建一个项目/模块/特性/任务；对任务执行审核、批准、生成提示词和执行；在项目返回的 `workspace_path` 中实际创建或修改文件，再用执行返回的 `mcp_token` 调用 `POST /api/v2/mcp/receipts`；随后运行 `POST /api/v2/projects/{project_id}/tests`、`POST /api/v2/executions/{execution_id}/conclusion`，最后由产品负责人调用 `POST /api/v2/executions/{execution_id}/acceptance`。验收时还应人为制造一次失败总结，并确认再次执行产生新的 ExecutionRun、旧执行保留为 `rework_required`。
+新增共创回归覆盖版本不可变、三道审批门禁、上游失效、并发冲突、编号覆盖、局部重拆边界、候选采纳/批准分离、审查反馈进入模型上下文、模型格式错误、证据真实性、取消/中断恢复、项目隔离、跨站拒绝及旧接口绕过保护。保留旧执行闭环与模型设置回归。
 
-## 目录结构
+隔离浏览器回归可运行 `python -m tests.manual.planning_server`，使用临时数据目录和 18642 端口；所有回复显式标为模拟内容，退出后不保留测试数据。**该 fixture 不是生产模型，也不得作为真实模型质量或公网检索成功的证据。**
+
+浏览器回归覆盖需求对话/生成/采纳/审批、递归树、退回意见、局部重拆、三项设计预览与联合审批，以及窄屏布局。2026-10-28 经授权补充了 **DeepSeek 真实付费模型** 独立合成样例验收：9 次调用，6 次正常完成、3 次输出校验失败；7 次留有供应商 usage，合计 58,642 tokens（不是完整账单）。经过人工修订与模型返工，完成需求 V3、拆分 V3、设计包 V2 联合审批，编码入口仍返回 409。
+
+详见[真实模型验收报告](<docs/verification/真实模型全流程验收-20261028.md>)及[调用证据](<docs/verification/acceptance-20261028/evidence.json>)。这证明主流程能在真实模型下走通，不代表一次生成可靠、所有业务场景合格，或样例设计已完成编码验证。
+
+建议验收步骤：
+
+1. 创建小项目，配置模型，补充一份项目资料，授权后持续讨论。
+2. 整理标准需求，比较候选与旧稿，采纳并审查；确认结构缺失/待确认项不能批准。
+3. 生成拆分，检查职责与 FR 覆盖，退回一个模块、补充意见并局部重拆，再批准。
+4. 生成详细设计/原型/数据设计，检查三者一致性，统一批准；确认没有自动进入编码。
+5. 修改需求生成新底稿，确认后续审批失效、历史版本仍可追踪。
+
+## 工程结构与维护
+
+采用**按业务纵切的模块化单体**，不是微服务。
 
 ```text
-devworkbench/
-├─ server/
-│  ├─ app.py                 # FastAPI 装配、内置 MCP、静态前端
-│  ├─ api/v2.py              # v2 控制室 REST API
-│  └─ core/
-│     ├─ db.py               # SQLite schema、事务与 JSON 辅助
-│     ├─ service.py          # 项目、产物、任务、执行、回执、结论
-│     ├─ workspace.py        # changed_files 工作区验证
-│     ├─ ci.py               # allowlist CI/TestRun runner
-│     └─ provider.py         # deterministic/OpenAI-compatible provider
-├─ frontend/                 # v2 Vue 3 驾驶舱
-├─ tests/                    # 正式后端集成测试
-├─ docs/                     # 历史原型与设计资产
-├─ legacy/v1/                # v1 归档实现，只读参考
-└─ workspace/                # 本地运行数据（不提交）
+apps/api/src/devworkbench/  # main + modules + infrastructure + shared
+apps/web/src/              # app + features + shared
+tests/                     # api + architecture + support + manual
+docs/                      # architecture + product + contracts + verification + archive
+legacy/v1/                 # 冻结旧实现
+workspace/                 # 私密运行数据，不提交/索引
 ```
 
-## 规划与边界
+新增功能先按[工程目录与功能归属](<docs/architecture/工程目录与功能归属.md>)确定位置，并遵守[Agent 工程约束](<AGENTS.md>)。依赖方向由架构测试约束；CI 执行完整 Python 回归与前端类型检查/构建。源码 checkout 默认数据和静态目录不依赖启动目录；安装部署需显式设置 `DEVWB_HOME` / `DEVWB_WEB_DIST`。
 
-- [v2 重建讨论定稿](../v2-重建规划/20260928-新定位与重建决策-讨论定稿.md)
-- [迁移清单与自举模拟](../v2-重建规划/20260928-迁移清单与自举模拟方案.md)
-- v1 归档标签：`v1.2.2-archive`
+AOCI 用于维护真实源码职责与关系索引；历史实现、生成产物、运行数据不进入当前源码认知。维护规则与验证入口见[AOCI 维护说明](<docs/architecture/AOCI维护.md>)。
 
-下一步由产品负责人进行人工验收：用一个真实小特性在驾驶舱/API 走完执行、回执、CI、总结和验收，并确认失败打回后的返工记录是否符合预期。
+## 历史能力
+
+旧最小执行闭环保留为兼容后端：`TaskCard → PromptInstance → ExecutionRun → MCP Receipt → changed_files 扫描 → 独立 CI → WorkbenchConclusion → 人工验收`。包括幂等回执、工作区绑定隔离、CI allowlist、不可变执行证据与人工风险验收；不宣称自动驱动外部 Agent。新共创项目不开放该执行入口，不能用旧链路跳过当前设计审批。

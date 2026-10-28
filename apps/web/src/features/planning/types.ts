@@ -1,0 +1,7 @@
+export type Kind = 'requirement' | 'decomposition' | 'design'
+export type PlanningNode = { id:string; parent_id:string|null; type:'module'|'feature'; title:string; responsibility:string; exclusions:string; requirement_ids:string[]; acceptance:string; dependencies:string[]; rationale:string }
+export type Data = { checks?:string[]; unresolved?:string[]; document?:string; overview?:string; nodes?:PlanningNode[]; detailed_design?:string; prototype_html?:string; data_design?:string }
+export type Version = { id:string; kind:Kind; number:number; data:Data; origin:'ai'|'human'; status:string; based_on:string|null; requirement_version_id:string|null; decomposition_version_id:string|null; created_at:string; checks:string[]; review_comment?:string; reviews?:{decision:string;comment:string;created_at:string;version_id:string}[] }
+export type Source = {id:string;title:string;kind:string;content:string;version:string;url?:string}
+export type Run = {id:string;action:string;status:string;error:string;created_at:string;provider_mode:string;response_text?:string;evidence:Source[];tools:{tool:string;status:string;message:string;finish_reason?:string;usage?:{prompt_tokens?:number;completion_tokens?:number;total_tokens?:number}}[];result_version_id?:string;citations?:string[]}
+export type State = {revision:number;provider_mode:string;messages:{id:string;role:string;content:string;created_at:string;run_id?:string}[];versions:Version[];current:Record<Kind,string|null>;runs:Run[];sources:Source[];stage:string;execution_locked:true}

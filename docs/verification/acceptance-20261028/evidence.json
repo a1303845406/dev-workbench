@@ -1,0 +1,991 @@
+{
+  "checked_at": "2026-10-28T06:39:51.395Z",
+  "project_id": "prj_2e66de3b0c6f",
+  "revision": 32,
+  "provider": {
+    "mode": "real",
+    "base_url": "https://api.deepseek.com",
+    "model": "deepseek-chat"
+  },
+  "stage": "design_approved",
+  "execution_locked": true,
+  "current": {
+    "requirement": "a2a95b7335324783ad5743431951d074",
+    "decomposition": "fb0682ba2fdf47b2aa3b116771939ed8",
+    "design": "d644c34c1f1c4b138c50638c132eca4c"
+  },
+  "versions": [
+    {
+      "id": "1645fe153b7448dc8afe0d4732af726c",
+      "kind": "requirement",
+      "number": 1,
+      "origin": "human",
+      "status": "draft",
+      "based_on": null,
+      "requirement_version_id": null,
+      "decomposition_version_id": null,
+      "checks": [
+        "待确认：旧版底稿导入，请共同梳理为标准需求后重新审查",
+        "缺少需求章节：背景与问题",
+        "缺少需求章节：目标与成功指标",
+        "缺少需求章节：用户与场景",
+        "缺少需求章节：范围与非目标",
+        "缺少需求章节：流程与业务规则",
+        "缺少需求章节：功能需求",
+        "缺少需求章节：数据与接口",
+        "缺少需求章节：非功能需求",
+        "缺少需求章节：约束与假设",
+        "缺少需求章节：验收与追踪",
+        "缺少需求章节：风险与待确认",
+        "缺少需求章节：决策与参考",
+        "缺少可追踪的 FR-001 格式功能需求编号"
+      ],
+      "reviews": []
+    },
+    {
+      "id": "9189e1653a6e425dbba2fe5dba3125c2",
+      "kind": "requirement",
+      "number": 2,
+      "origin": "ai",
+      "status": "draft",
+      "based_on": "1645fe153b7448dc8afe0d4732af726c",
+      "requirement_version_id": null,
+      "decomposition_version_id": null,
+      "checks": [],
+      "reviews": []
+    },
+    {
+      "id": "a2a95b7335324783ad5743431951d074",
+      "kind": "requirement",
+      "number": 3,
+      "origin": "human",
+      "status": "approved",
+      "based_on": "9189e1653a6e425dbba2fe5dba3125c2",
+      "requirement_version_id": null,
+      "decomposition_version_id": null,
+      "checks": [],
+      "reviews": [
+        {
+          "decision": "approve",
+          "comment": "",
+          "created_at": "2026-10-28T06:19:22+00:00",
+          "version_id": "a2a95b7335324783ad5743431951d074"
+        }
+      ]
+    },
+    {
+      "id": "fde655ca640146f8b1a118f65d6de241",
+      "kind": "decomposition",
+      "number": 1,
+      "origin": "ai",
+      "status": "changes_requested",
+      "based_on": null,
+      "requirement_version_id": "a2a95b7335324783ad5743431951d074",
+      "decomposition_version_id": null,
+      "checks": [
+        "模块未拆至特性：M-BOOK-ARCHIVE-NOTE",
+        "模块未拆至特性：M-LOAN-HISTORY-NOTE"
+      ],
+      "reviews": [
+        {
+          "decision": "changes_requested",
+          "comment": "退回：两个 NOTE 模块没有下属特性，且概述节点数重复计算。移除这两个重复职责的空模块，保留8节点；归档可见性和历史保留应写入原有特性，而不是凑数量。",
+          "created_at": "2026-10-28T06:25:16+00:00",
+          "version_id": "fde655ca640146f8b1a118f65d6de241"
+        }
+      ]
+    },
+    {
+      "id": "c2fbbd716adf44a690f44143627ea769",
+      "kind": "decomposition",
+      "number": 2,
+      "origin": "human",
+      "status": "draft",
+      "based_on": "fde655ca640146f8b1a118f65d6de241",
+      "requirement_version_id": "a2a95b7335324783ad5743431951d074",
+      "decomposition_version_id": null,
+      "checks": [],
+      "reviews": []
+    },
+    {
+      "id": "fb0682ba2fdf47b2aa3b116771939ed8",
+      "kind": "decomposition",
+      "number": 3,
+      "origin": "ai",
+      "status": "approved",
+      "based_on": "c2fbbd716adf44a690f44143627ea769",
+      "requirement_version_id": "a2a95b7335324783ad5743431951d074",
+      "decomposition_version_id": null,
+      "checks": [],
+      "reviews": [
+        {
+          "decision": "approve",
+          "comment": "验收审查：8节点、三级归属、4条FR全覆盖。局部返工只改变M-LOAN-REC分支三个节点，其他节点与overview逐字不变；422/409、日期及防重复写入已明确。批准当前拆分供联合设计使用。",
+          "created_at": "2026-10-28T06:26:31+00:00",
+          "version_id": "fb0682ba2fdf47b2aa3b116771939ed8"
+        }
+      ]
+    },
+    {
+      "id": "44f1683e38484e159430ead0a57dab3b",
+      "kind": "design",
+      "number": 1,
+      "origin": "ai",
+      "status": "changes_requested",
+      "based_on": null,
+      "requirement_version_id": "a2a95b7335324783ad5743431951d074",
+      "decomposition_version_id": "fb0682ba2fdf47b2aa3b116771939ed8",
+      "checks": [],
+      "reviews": [
+        {
+          "decision": "changes_requested",
+          "comment": "联合审查退回：原型默认“全部”与已批准拆分“默认隐藏归档”不一致；列表历史响应未定义，字段长度/创建时间来源不明确；SQLite外键需每连接启用，借出/归还/归档并发边界不充分；备份恢复应先保留当前库及伴随文件，确认停服和快照完整性，不应直接删除残留文件。请三项一致修改。",
+          "created_at": "2026-10-28T06:28:35+00:00",
+          "version_id": "44f1683e38484e159430ead0a57dab3b"
+        }
+      ]
+    },
+    {
+      "id": "d644c34c1f1c4b138c50638c132eca4c",
+      "kind": "design",
+      "number": 2,
+      "origin": "ai",
+      "status": "approved",
+      "based_on": "44f1683e38484e159430ead0a57dab3b",
+      "requirement_version_id": "a2a95b7335324783ad5743431951d074",
+      "decomposition_version_id": "fb0682ba2fdf47b2aa3b116771939ed8",
+      "checks": [],
+      "reviews": [
+        {
+          "decision": "approve",
+          "comment": "独立合成验收样例联合审查通过：已逐项检查详细设计、静态原型、数据设计。四个特性ID和字段一致；默认未归档、422/409/404/503、条件更新/事务、外键和离线备份恢复已修正。仅批准样例设计版本用于工作台流程验收，不代表用户真实项目批准，不开始编码；部分唯一索引仍需未来实现时实测。",
+          "created_at": "2026-10-28T06:33:25+00:00",
+          "version_id": "d644c34c1f1c4b138c50638c132eca4c"
+        }
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "number": 1,
+      "id": "7bce1b03eef14f19b6ee86ef453c987a",
+      "action": "discuss",
+      "status": "completed",
+      "created_at": "2026-10-28T05:53:31+00:00",
+      "error": "",
+      "base": {
+        "requirement": "1645fe153b7448dc8afe0d4732af726c",
+        "decomposition": null,
+        "design": null
+      },
+      "target_node_id": null,
+      "query": "site:sqlite.org partial unique index WHERE IS NULL",
+      "tools": [
+        {
+          "tool": "project_context",
+          "status": "completed",
+          "message": "读取 4 份内置知识/项目资料/人工经验；未读取其他项目"
+        },
+        {
+          "tool": "web_search",
+          "status": "failed",
+          "message": "联网检索失败，本轮不使用网页证据"
+        }
+      ],
+      "citations": [
+        "c744c43d6adb4a8aa3d542ca0d13a6c8",
+        "ecc98d6a0fb74c998e51972d38980599"
+      ],
+      "evidence": [
+        {
+          "id": "knowledge-srs-v1",
+          "kind": "knowledge",
+          "title": "轻量 SRS 与人机共创约定",
+          "version": "1.0",
+          "content": "需求按以下十二节组织：背景与问题、目标与成功指标、用户与场景、范围与非目标、流程与业务规则、功能需求、数据与接口、非功能需求、约束与假设、验收与追踪、风险与待确认、决策与参考。使用 FR-001 等稳定编号；需求写清触发条件、输入、输出、异常和可测试验收。未知值必须列为待确认，不冒充用户已决定。每轮先回应用户，再提最多三个关键问题；成熟后输出完整需求候选稿，不能静默覆盖人工版本。"
+        },
+        {
+          "id": "knowledge-design-v1",
+          "kind": "knowledge",
+          "title": "递归模块与联合设计审查",
+          "version": "1.0",
+          "content": "模块按职责递归拆分到特性，归属树与依赖图分开；每节点标记范围、非职责、需求编号、验收、拆分依据。先整体设计和拆分，人工批准后再详细设计、静态原型和数据设计。三项设计同一版本包、共同引用特性 ID，非 UI 特性在原型标注不适用，非持久化特性在数据设计说明。细化接口、状态、异常、权限、关键交互、数据实体与约束。生成不是审批，设计审查后不得擅自生成编码任务。"
+        },
+        {
+          "id": "ecc98d6a0fb74c998e51972d38980599",
+          "title": "验收业务约束",
+          "kind": "project",
+          "content": "B-001：只供一个可信管理员本机操作，不做身份认证。B-002：每个书目仅一册，书目编码唯一，书名必填，ISBN可空。B-003：借阅代号只能取A01至A10，借出时手填；同一册仅允许一笔未归还借阅。B-004：归还保留借阅历史；书目存在未归还记录时禁止归档。B-005：借出日期和归还日期采用本地日历日；无到期日、无罚款。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        },
+        {
+          "id": "c744c43d6adb4a8aa3d542ca0d13a6c8",
+          "title": "人工经验：防止重复提交",
+          "kind": "experience",
+          "content": "以往小工具出现过双击导致两条借阅记录。首版需禁用提交按钮，并在服务端以事务和唯一约束保证一册仅有一笔未归还记录；失败保留表单，明确提示原因。验收覆盖重复借出、重复归还以及必填输入为空。此经验仅属本验收项目。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        }
+      ],
+      "result_version_id": null
+    },
+    {
+      "number": 2,
+      "id": "a6561f3093794937821622060ff3aa52",
+      "action": "requirements",
+      "status": "failed",
+      "created_at": "2026-10-28T06:08:44+00:00",
+      "error": "模型调用或候选稿校验失败。请检查连接、输出格式后重试；原文和审批不变。",
+      "base": {
+        "requirement": "1645fe153b7448dc8afe0d4732af726c",
+        "decomposition": null,
+        "design": null
+      },
+      "target_node_id": null,
+      "query": "SQLite",
+      "tools": [
+        {
+          "tool": "project_context",
+          "status": "completed",
+          "message": "读取 4 份内置知识/项目资料/人工经验；未读取其他项目"
+        },
+        {
+          "tool": "web_search",
+          "status": "completed",
+          "message": "公开查询：SQLite；6 条搜索摘要（未抓取全文）"
+        }
+      ],
+      "citations": [],
+      "evidence": [
+        {
+          "id": "knowledge-srs-v1",
+          "kind": "knowledge",
+          "title": "轻量 SRS 与人机共创约定",
+          "version": "1.0",
+          "content": "需求按以下十二节组织：背景与问题、目标与成功指标、用户与场景、范围与非目标、流程与业务规则、功能需求、数据与接口、非功能需求、约束与假设、验收与追踪、风险与待确认、决策与参考。使用 FR-001 等稳定编号；需求写清触发条件、输入、输出、异常和可测试验收。未知值必须列为待确认，不冒充用户已决定。每轮先回应用户，再提最多三个关键问题；成熟后输出完整需求候选稿，不能静默覆盖人工版本。"
+        },
+        {
+          "id": "knowledge-design-v1",
+          "kind": "knowledge",
+          "title": "递归模块与联合设计审查",
+          "version": "1.0",
+          "content": "模块按职责递归拆分到特性，归属树与依赖图分开；每节点标记范围、非职责、需求编号、验收、拆分依据。先整体设计和拆分，人工批准后再详细设计、静态原型和数据设计。三项设计同一版本包、共同引用特性 ID，非 UI 特性在原型标注不适用，非持久化特性在数据设计说明。细化接口、状态、异常、权限、关键交互、数据实体与约束。生成不是审批，设计审查后不得擅自生成编码任务。"
+        },
+        {
+          "id": "ecc98d6a0fb74c998e51972d38980599",
+          "title": "验收业务约束",
+          "kind": "project",
+          "content": "B-001：只供一个可信管理员本机操作，不做身份认证。B-002：每个书目仅一册，书目编码唯一，书名必填，ISBN可空。B-003：借阅代号只能取A01至A10，借出时手填；同一册仅允许一笔未归还借阅。B-004：归还保留借阅历史；书目存在未归还记录时禁止归档。B-005：借出日期和归还日期采用本地日历日；无到期日、无罚款。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        },
+        {
+          "id": "c744c43d6adb4a8aa3d542ca0d13a6c8",
+          "title": "人工经验：防止重复提交",
+          "kind": "experience",
+          "content": "以往小工具出现过双击导致两条借阅记录。首版需禁用提交按钮，并在服务端以事务和唯一约束保证一册仅有一笔未归还记录；失败保留表单，明确提示原因。验收覆盖重复借出、重复归还以及必填输入为空。此经验仅属本验收项目。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        },
+        {
+          "id": "web-1",
+          "kind": "web",
+          "title": "SQLite Home Page",
+          "content": "SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine. SQLite is the most used database engine in the world.",
+          "url": "https://sqlite.org/index.html",
+          "version": "search-snippet"
+        },
+        {
+          "id": "web-2",
+          "kind": "web",
+          "title": "SQLite 教程 | 菜鸟教程",
+          "content": "SQLite 教程 SQLite 是一个软件库，实现了自给自足的、无服务器的、零配置的、事务性的 SQL 数据库引擎。 SQLite 是在世界上最广泛部署的 SQL 数据库引擎。 SQLite 源代码不受版权限制。 本教程将告诉您如何使用 SQLite 编程，并让你迅速上手。 现在开始学习 SQLite！",
+          "url": "https://www.runoob.com/sqlite/sqlite-tutorial.html",
+          "version": "search-snippet"
+        },
+        {
+          "id": "web-3",
+          "kind": "web",
+          "title": "SQLite Download Page",
+          "content": "See the How To Compile SQLite page for additional information on how to use the raw SQLite source code. Note that a recent version of Tcl is required in order to build from the repository sources.",
+          "url": "https://sqlite.org/download.html",
+          "version": "search-snippet"
+        },
+        {
+          "id": "web-4",
+          "kind": "web",
+          "title": "SQLite 主页 - SQLite 数据库",
+          "content": "什么是 SQLite？ SQLite 是一个用 C 语言编写的库，它实现了一个 小型 、 快速 、 自包含 、 高可靠性 、 功能齐全 的 SQL 数据库引擎。 SQLite 是世界上 使用最广泛 的数据库引擎。",
+          "url": "https://sqlite.ac.cn/",
+          "version": "search-snippet"
+        },
+        {
+          "id": "web-5",
+          "kind": "web",
+          "title": "SQLite 入门教程（非常详细）零基础入门到精通，收藏这 ...",
+          "content": "本文介绍了SQLite，一个开源、轻量级的SQL数据库，适合嵌入式设备和低流量网站。 文章详细阐述了SQLite的安装、使用场景、命令操作，以及其与MySQL等服务器端数据库的区别，同时展示了如何在SQLite中进行基本的数据库操作和备份恢复。",
+          "url": "https://blog.csdn.net/Javachichi/article/details/138106632",
+          "version": "search-snippet"
+        },
+        {
+          "id": "web-6",
+          "kind": "web",
+          "title": "【SQLite】SQLite3下载、安装、数据库操作保姆级教程 ...",
+          "content": "SQLite 是全球最流行的嵌入式关系数据库引擎，无需安装服务、零配置、单文件（.db）存储，直接以 C 库形式嵌入应用。 广泛用于移动App、桌面软件、IoT设备及开发测试，支持标准SQL与ACID事务，跨平台、轻量高效。 （239字）",
+          "url": "https://developer.aliyun.com/article/1748389",
+          "version": "search-snippet"
+        }
+      ],
+      "result_version_id": null
+    },
+    {
+      "number": 3,
+      "id": "83241dab8a7045ee9bf83f67a262a0aa",
+      "action": "requirements",
+      "status": "failed",
+      "created_at": "2026-10-28T06:14:13+00:00",
+      "error": "模型响应缺少非空 reply 字符串，请按 JSON 契约重试",
+      "base": {
+        "requirement": "1645fe153b7448dc8afe0d4732af726c",
+        "decomposition": null,
+        "design": null
+      },
+      "target_node_id": null,
+      "query": "SQLite",
+      "tools": [
+        {
+          "tool": "project_context",
+          "status": "completed",
+          "message": "读取 4 份内置知识/项目资料/人工经验；未读取其他项目"
+        },
+        {
+          "tool": "web_search",
+          "status": "completed",
+          "message": "公开查询：SQLite；6 条搜索摘要（未抓取全文）"
+        },
+        {
+          "tool": "model_completion",
+          "status": "completed",
+          "message": "模型调用；计量来自供应商响应，未返回计量时不估算费用",
+          "finish_reason": "stop",
+          "usage": {
+            "prompt_tokens": 3130,
+            "completion_tokens": 1246,
+            "total_tokens": 4376,
+            "prompt_cache_hit_tokens": 256,
+            "prompt_cache_miss_tokens": 2874
+          }
+        }
+      ],
+      "citations": [],
+      "evidence": [
+        {
+          "id": "knowledge-srs-v1",
+          "kind": "knowledge",
+          "title": "轻量 SRS 与人机共创约定",
+          "version": "1.0",
+          "content": "需求按以下十二节组织：背景与问题、目标与成功指标、用户与场景、范围与非目标、流程与业务规则、功能需求、数据与接口、非功能需求、约束与假设、验收与追踪、风险与待确认、决策与参考。使用 FR-001 等稳定编号；需求写清触发条件、输入、输出、异常和可测试验收。未知值必须列为待确认，不冒充用户已决定。每轮先回应用户，再提最多三个关键问题；成熟后输出完整需求候选稿，不能静默覆盖人工版本。"
+        },
+        {
+          "id": "knowledge-design-v1",
+          "kind": "knowledge",
+          "title": "递归模块与联合设计审查",
+          "version": "1.0",
+          "content": "模块按职责递归拆分到特性，归属树与依赖图分开；每节点标记范围、非职责、需求编号、验收、拆分依据。先整体设计和拆分，人工批准后再详细设计、静态原型和数据设计。三项设计同一版本包、共同引用特性 ID，非 UI 特性在原型标注不适用，非持久化特性在数据设计说明。细化接口、状态、异常、权限、关键交互、数据实体与约束。生成不是审批，设计审查后不得擅自生成编码任务。"
+        },
+        {
+          "id": "ecc98d6a0fb74c998e51972d38980599",
+          "title": "验收业务约束",
+          "kind": "project",
+          "content": "B-001：只供一个可信管理员本机操作，不做身份认证。B-002：每个书目仅一册，书目编码唯一，书名必填，ISBN可空。B-003：借阅代号只能取A01至A10，借出时手填；同一册仅允许一笔未归还借阅。B-004：归还保留借阅历史；书目存在未归还记录时禁止归档。B-005：借出日期和归还日期采用本地日历日；无到期日、无罚款。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        },
+        {
+          "id": "c744c43d6adb4a8aa3d542ca0d13a6c8",
+          "title": "人工经验：防止重复提交",
+          "kind": "experience",
+          "content": "以往小工具出现过双击导致两条借阅记录。首版需禁用提交按钮，并在服务端以事务和唯一约束保证一册仅有一笔未归还记录；失败保留表单，明确提示原因。验收覆盖重复借出、重复归还以及必填输入为空。此经验仅属本验收项目。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        },
+        {
+          "id": "web-1",
+          "kind": "web",
+          "title": "SQLite Home Page",
+          "content": "SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine. SQLite is the most used database engine in the world.",
+          "url": "https://sqlite.org/index.html",
+          "version": "search-snippet"
+        },
+        {
+          "id": "web-2",
+          "kind": "web",
+          "title": "SQLite 教程 | 菜鸟教程",
+          "content": "SQLite 教程 SQLite 是一个软件库，实现了自给自足的、无服务器的、零配置的、事务性的 SQL 数据库引擎。 SQLite 是在世界上最广泛部署的 SQL 数据库引擎。 SQLite 源代码不受版权限制。 本教程将告诉您如何使用 SQLite 编程，并让你迅速上手。 现在开始学习 SQLite！",
+          "url": "https://www.runoob.com/sqlite/sqlite-tutorial.html",
+          "version": "search-snippet"
+        },
+        {
+          "id": "web-3",
+          "kind": "web",
+          "title": "SQLite Download Page",
+          "content": "See the How To Compile SQLite page for additional information on how to use the raw SQLite source code. Note that a recent version of Tcl is required in order to build from the repository sources.",
+          "url": "https://sqlite.org/download.html",
+          "version": "search-snippet"
+        },
+        {
+          "id": "web-4",
+          "kind": "web",
+          "title": "SQLite 主页 - SQLite 数据库",
+          "content": "什么是 SQLite？ SQLite 是一个用 C 语言编写的库，它实现了一个 小型 、 快速 、 自包含 、 高可靠性 、 功能齐全 的 SQL 数据库引擎。 SQLite 是世界上 使用最广泛 的数据库引擎。",
+          "url": "https://sqlite.ac.cn/",
+          "version": "search-snippet"
+        },
+        {
+          "id": "web-5",
+          "kind": "web",
+          "title": "SQLite 入门教程（非常详细）零基础入门到精通，收藏这 ...",
+          "content": "本文介绍了SQLite，一个开源、轻量级的SQL数据库，适合嵌入式设备和低流量网站。 文章详细阐述了SQLite的安装、使用场景、命令操作，以及其与MySQL等服务器端数据库的区别，同时展示了如何在SQLite中进行基本的数据库操作和备份恢复。",
+          "url": "https://blog.csdn.net/Javachichi/article/details/138106632",
+          "version": "search-snippet"
+        },
+        {
+          "id": "web-6",
+          "kind": "web",
+          "title": "【SQLite】SQLite3下载、安装、数据库操作保姆级教程 ...",
+          "content": "SQLite 是全球最流行的嵌入式关系数据库引擎，无需安装服务、零配置、单文件（.db）存储，直接以 C 库形式嵌入应用。 广泛用于移动App、桌面软件、IoT设备及开发测试，支持标准SQL与ACID事务，跨平台、轻量高效。 （239字）",
+          "url": "https://developer.aliyun.com/article/1748389",
+          "version": "search-snippet"
+        }
+      ],
+      "result_version_id": null
+    },
+    {
+      "number": 4,
+      "id": "ba84fa3d92204c19913b7e7637fe7883",
+      "action": "requirements",
+      "status": "completed",
+      "created_at": "2026-10-28T06:17:27+00:00",
+      "error": "",
+      "base": {
+        "requirement": "1645fe153b7448dc8afe0d4732af726c",
+        "decomposition": null,
+        "design": null
+      },
+      "target_node_id": null,
+      "query": "SQLite",
+      "tools": [
+        {
+          "tool": "project_context",
+          "status": "completed",
+          "message": "读取 4 份内置知识/项目资料/人工经验；未读取其他项目"
+        },
+        {
+          "tool": "web_search",
+          "status": "completed",
+          "message": "公开查询：SQLite；6 条搜索摘要（未抓取全文）"
+        },
+        {
+          "tool": "model_completion",
+          "status": "completed",
+          "message": "模型调用；计量来自供应商响应，未返回计量时不估算费用",
+          "finish_reason": "stop",
+          "usage": {
+            "prompt_tokens": 3350,
+            "completion_tokens": 1322,
+            "total_tokens": 4672,
+            "prompt_cache_hit_tokens": 128,
+            "prompt_cache_miss_tokens": 3222
+          }
+        }
+      ],
+      "citations": [
+        "knowledge-srs-v1",
+        "ecc98d6a0fb74c998e51972d38980599",
+        "c744c43d6adb4a8aa3d542ca0d13a6c8",
+        "web-1",
+        "web-2",
+        "web-6"
+      ],
+      "evidence": [
+        {
+          "id": "knowledge-srs-v1",
+          "kind": "knowledge",
+          "title": "轻量 SRS 与人机共创约定",
+          "version": "1.0",
+          "content": "需求按以下十二节组织：背景与问题、目标与成功指标、用户与场景、范围与非目标、流程与业务规则、功能需求、数据与接口、非功能需求、约束与假设、验收与追踪、风险与待确认、决策与参考。使用 FR-001 等稳定编号；需求写清触发条件、输入、输出、异常和可测试验收。未知值必须列为待确认，不冒充用户已决定。每轮先回应用户，再提最多三个关键问题；成熟后输出完整需求候选稿，不能静默覆盖人工版本。"
+        },
+        {
+          "id": "knowledge-design-v1",
+          "kind": "knowledge",
+          "title": "递归模块与联合设计审查",
+          "version": "1.0",
+          "content": "模块按职责递归拆分到特性，归属树与依赖图分开；每节点标记范围、非职责、需求编号、验收、拆分依据。先整体设计和拆分，人工批准后再详细设计、静态原型和数据设计。三项设计同一版本包、共同引用特性 ID，非 UI 特性在原型标注不适用，非持久化特性在数据设计说明。细化接口、状态、异常、权限、关键交互、数据实体与约束。生成不是审批，设计审查后不得擅自生成编码任务。"
+        },
+        {
+          "id": "ecc98d6a0fb74c998e51972d38980599",
+          "title": "验收业务约束",
+          "kind": "project",
+          "content": "B-001：只供一个可信管理员本机操作，不做身份认证。B-002：每个书目仅一册，书目编码唯一，书名必填，ISBN可空。B-003：借阅代号只能取A01至A10，借出时手填；同一册仅允许一笔未归还借阅。B-004：归还保留借阅历史；书目存在未归还记录时禁止归档。B-005：借出日期和归还日期采用本地日历日；无到期日、无罚款。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        },
+        {
+          "id": "c744c43d6adb4a8aa3d542ca0d13a6c8",
+          "title": "人工经验：防止重复提交",
+          "kind": "experience",
+          "content": "以往小工具出现过双击导致两条借阅记录。首版需禁用提交按钮，并在服务端以事务和唯一约束保证一册仅有一笔未归还记录；失败保留表单，明确提示原因。验收覆盖重复借出、重复归还以及必填输入为空。此经验仅属本验收项目。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        },
+        {
+          "id": "web-1",
+          "kind": "web",
+          "title": "SQLite Home Page",
+          "content": "SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine. SQLite is the most used database engine in the world.",
+          "url": "https://sqlite.org/index.html",
+          "version": "search-snippet"
+        },
+        {
+          "id": "web-2",
+          "kind": "web",
+          "title": "SQLite 教程 | 菜鸟教程",
+          "content": "SQLite 教程 SQLite 是一个软件库，实现了自给自足的、无服务器的、零配置的、事务性的 SQL 数据库引擎。 SQLite 是在世界上最广泛部署的 SQL 数据库引擎。 SQLite 源代码不受版权限制。 本教程将告诉您如何使用 SQLite 编程，并让你迅速上手。 现在开始学习 SQLite！",
+          "url": "https://www.runoob.com/sqlite/sqlite-tutorial.html",
+          "version": "search-snippet"
+        },
+        {
+          "id": "web-3",
+          "kind": "web",
+          "title": "SQLite Download Page",
+          "content": "See the How To Compile SQLite page for additional information on how to use the raw SQLite source code. Note that a recent version of Tcl is required in order to build from the repository sources.",
+          "url": "https://sqlite.org/download.html",
+          "version": "search-snippet"
+        },
+        {
+          "id": "web-4",
+          "kind": "web",
+          "title": "SQLite 主页 - SQLite 数据库",
+          "content": "什么是 SQLite？ SQLite 是一个用 C 语言编写的库，它实现了一个 小型 、 快速 、 自包含 、 高可靠性 、 功能齐全 的 SQL 数据库引擎。 SQLite 是世界上 使用最广泛 的数据库引擎。",
+          "url": "https://sqlite.ac.cn/",
+          "version": "search-snippet"
+        },
+        {
+          "id": "web-5",
+          "kind": "web",
+          "title": "SQLite 入门教程（非常详细）零基础入门到精通，收藏这 ...",
+          "content": "本文介绍了SQLite，一个开源、轻量级的SQL数据库，适合嵌入式设备和低流量网站。 文章详细阐述了SQLite的安装、使用场景、命令操作，以及其与MySQL等服务器端数据库的区别，同时展示了如何在SQLite中进行基本的数据库操作和备份恢复。",
+          "url": "https://blog.csdn.net/Javachichi/article/details/138106632",
+          "version": "search-snippet"
+        },
+        {
+          "id": "web-6",
+          "kind": "web",
+          "title": "【SQLite】SQLite3下载、安装、数据库操作保姆级教程 ...",
+          "content": "SQLite 是全球最流行的嵌入式关系数据库引擎，无需安装服务、零配置、单文件（.db）存储，直接以 C 库形式嵌入应用。 广泛用于移动App、桌面软件、IoT设备及开发测试，支持标准SQL与ACID事务，跨平台、轻量高效。 （239字）",
+          "url": "https://developer.aliyun.com/article/1748389",
+          "version": "search-snippet"
+        }
+      ],
+      "result_version_id": "9189e1653a6e425dbba2fe5dba3125c2"
+    },
+    {
+      "number": 5,
+      "id": "842459f76ded4e4aba8d489ca7b5b8d8",
+      "action": "decomposition",
+      "status": "failed",
+      "created_at": "2026-10-28T06:19:24+00:00",
+      "error": "候选数据不符合结构契约（1 项错误），请要求模型严格遵循字段类型、必填项和树约束。",
+      "base": {
+        "requirement": "a2a95b7335324783ad5743431951d074",
+        "decomposition": null,
+        "design": null
+      },
+      "target_node_id": null,
+      "query": null,
+      "tools": [
+        {
+          "tool": "project_context",
+          "status": "completed",
+          "message": "读取 4 份内置知识/项目资料/人工经验；未读取其他项目"
+        },
+        {
+          "tool": "model_completion",
+          "status": "completed",
+          "message": "模型调用；计量来自供应商响应，未返回计量时不估算费用",
+          "finish_reason": "stop",
+          "usage": {
+            "prompt_tokens": 4607,
+            "completion_tokens": 2041,
+            "total_tokens": 6648,
+            "prompt_cache_hit_tokens": 256,
+            "prompt_cache_miss_tokens": 4351
+          }
+        }
+      ],
+      "citations": [],
+      "evidence": [
+        {
+          "id": "knowledge-srs-v1",
+          "kind": "knowledge",
+          "title": "轻量 SRS 与人机共创约定",
+          "version": "1.0",
+          "content": "需求按以下十二节组织：背景与问题、目标与成功指标、用户与场景、范围与非目标、流程与业务规则、功能需求、数据与接口、非功能需求、约束与假设、验收与追踪、风险与待确认、决策与参考。使用 FR-001 等稳定编号；需求写清触发条件、输入、输出、异常和可测试验收。未知值必须列为待确认，不冒充用户已决定。每轮先回应用户，再提最多三个关键问题；成熟后输出完整需求候选稿，不能静默覆盖人工版本。"
+        },
+        {
+          "id": "knowledge-design-v1",
+          "kind": "knowledge",
+          "title": "递归模块与联合设计审查",
+          "version": "1.0",
+          "content": "模块按职责递归拆分到特性，归属树与依赖图分开；每节点标记范围、非职责、需求编号、验收、拆分依据。先整体设计和拆分，人工批准后再详细设计、静态原型和数据设计。三项设计同一版本包、共同引用特性 ID，非 UI 特性在原型标注不适用，非持久化特性在数据设计说明。细化接口、状态、异常、权限、关键交互、数据实体与约束。生成不是审批，设计审查后不得擅自生成编码任务。"
+        },
+        {
+          "id": "ecc98d6a0fb74c998e51972d38980599",
+          "title": "验收业务约束",
+          "kind": "project",
+          "content": "B-001：只供一个可信管理员本机操作，不做身份认证。B-002：每个书目仅一册，书目编码唯一，书名必填，ISBN可空。B-003：借阅代号只能取A01至A10，借出时手填；同一册仅允许一笔未归还借阅。B-004：归还保留借阅历史；书目存在未归还记录时禁止归档。B-005：借出日期和归还日期采用本地日历日；无到期日、无罚款。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        },
+        {
+          "id": "c744c43d6adb4a8aa3d542ca0d13a6c8",
+          "title": "人工经验：防止重复提交",
+          "kind": "experience",
+          "content": "以往小工具出现过双击导致两条借阅记录。首版需禁用提交按钮，并在服务端以事务和唯一约束保证一册仅有一笔未归还记录；失败保留表单，明确提示原因。验收覆盖重复借出、重复归还以及必填输入为空。此经验仅属本验收项目。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        }
+      ],
+      "result_version_id": null
+    },
+    {
+      "number": 6,
+      "id": "67d041c091cc40cfae4936b95195b93c",
+      "action": "decomposition",
+      "status": "completed",
+      "created_at": "2026-10-28T06:21:51+00:00",
+      "error": "",
+      "base": {
+        "requirement": "a2a95b7335324783ad5743431951d074",
+        "decomposition": null,
+        "design": null
+      },
+      "target_node_id": null,
+      "query": null,
+      "tools": [
+        {
+          "tool": "project_context",
+          "status": "completed",
+          "message": "读取 4 份内置知识/项目资料/人工经验；未读取其他项目"
+        },
+        {
+          "tool": "model_completion",
+          "status": "completed",
+          "message": "模型调用；计量来自供应商响应，未返回计量时不估算费用",
+          "finish_reason": "stop",
+          "usage": {
+            "prompt_tokens": 4824,
+            "completion_tokens": 2508,
+            "total_tokens": 7332,
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 4824
+          }
+        }
+      ],
+      "citations": [
+        "knowledge-design-v1",
+        "knowledge-srs-v1",
+        "ecc98d6a0fb74c998e51972d38980599",
+        "c744c43d6adb4a8aa3d542ca0d13a6c8"
+      ],
+      "evidence": [
+        {
+          "id": "knowledge-srs-v1",
+          "kind": "knowledge",
+          "title": "轻量 SRS 与人机共创约定",
+          "version": "1.0",
+          "content": "需求按以下十二节组织：背景与问题、目标与成功指标、用户与场景、范围与非目标、流程与业务规则、功能需求、数据与接口、非功能需求、约束与假设、验收与追踪、风险与待确认、决策与参考。使用 FR-001 等稳定编号；需求写清触发条件、输入、输出、异常和可测试验收。未知值必须列为待确认，不冒充用户已决定。每轮先回应用户，再提最多三个关键问题；成熟后输出完整需求候选稿，不能静默覆盖人工版本。"
+        },
+        {
+          "id": "knowledge-design-v1",
+          "kind": "knowledge",
+          "title": "递归模块与联合设计审查",
+          "version": "1.0",
+          "content": "模块按职责递归拆分到特性，归属树与依赖图分开；每节点标记范围、非职责、需求编号、验收、拆分依据。先整体设计和拆分，人工批准后再详细设计、静态原型和数据设计。三项设计同一版本包、共同引用特性 ID，非 UI 特性在原型标注不适用，非持久化特性在数据设计说明。细化接口、状态、异常、权限、关键交互、数据实体与约束。生成不是审批，设计审查后不得擅自生成编码任务。"
+        },
+        {
+          "id": "ecc98d6a0fb74c998e51972d38980599",
+          "title": "验收业务约束",
+          "kind": "project",
+          "content": "B-001：只供一个可信管理员本机操作，不做身份认证。B-002：每个书目仅一册，书目编码唯一，书名必填，ISBN可空。B-003：借阅代号只能取A01至A10，借出时手填；同一册仅允许一笔未归还借阅。B-004：归还保留借阅历史；书目存在未归还记录时禁止归档。B-005：借出日期和归还日期采用本地日历日；无到期日、无罚款。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        },
+        {
+          "id": "c744c43d6adb4a8aa3d542ca0d13a6c8",
+          "title": "人工经验：防止重复提交",
+          "kind": "experience",
+          "content": "以往小工具出现过双击导致两条借阅记录。首版需禁用提交按钮，并在服务端以事务和唯一约束保证一册仅有一笔未归还记录；失败保留表单，明确提示原因。验收覆盖重复借出、重复归还以及必填输入为空。此经验仅属本验收项目。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        }
+      ],
+      "result_version_id": "fde655ca640146f8b1a118f65d6de241"
+    },
+    {
+      "number": 7,
+      "id": "b82af79f7b2949a1a79e19b1b8a507b0",
+      "action": "decomposition",
+      "status": "completed",
+      "created_at": "2026-10-28T06:25:44+00:00",
+      "error": "",
+      "base": {
+        "requirement": "a2a95b7335324783ad5743431951d074",
+        "decomposition": "c2fbbd716adf44a690f44143627ea769",
+        "design": null
+      },
+      "target_node_id": "M-LOAN-REC",
+      "query": null,
+      "tools": [
+        {
+          "tool": "project_context",
+          "status": "completed",
+          "message": "读取 4 份内置知识/项目资料/人工经验；未读取其他项目"
+        },
+        {
+          "tool": "model_completion",
+          "status": "completed",
+          "message": "模型调用；计量来自供应商响应，未返回计量时不估算费用",
+          "finish_reason": "stop",
+          "usage": {
+            "prompt_tokens": 7093,
+            "completion_tokens": 2348,
+            "total_tokens": 9441,
+            "prompt_cache_hit_tokens": 768,
+            "prompt_cache_miss_tokens": 6325
+          }
+        }
+      ],
+      "citations": [
+        "ecc98d6a0fb74c998e51972d38980599",
+        "c744c43d6adb4a8aa3d542ca0d13a6c8"
+      ],
+      "evidence": [
+        {
+          "id": "knowledge-srs-v1",
+          "kind": "knowledge",
+          "title": "轻量 SRS 与人机共创约定",
+          "version": "1.0",
+          "content": "需求按以下十二节组织：背景与问题、目标与成功指标、用户与场景、范围与非目标、流程与业务规则、功能需求、数据与接口、非功能需求、约束与假设、验收与追踪、风险与待确认、决策与参考。使用 FR-001 等稳定编号；需求写清触发条件、输入、输出、异常和可测试验收。未知值必须列为待确认，不冒充用户已决定。每轮先回应用户，再提最多三个关键问题；成熟后输出完整需求候选稿，不能静默覆盖人工版本。"
+        },
+        {
+          "id": "knowledge-design-v1",
+          "kind": "knowledge",
+          "title": "递归模块与联合设计审查",
+          "version": "1.0",
+          "content": "模块按职责递归拆分到特性，归属树与依赖图分开；每节点标记范围、非职责、需求编号、验收、拆分依据。先整体设计和拆分，人工批准后再详细设计、静态原型和数据设计。三项设计同一版本包、共同引用特性 ID，非 UI 特性在原型标注不适用，非持久化特性在数据设计说明。细化接口、状态、异常、权限、关键交互、数据实体与约束。生成不是审批，设计审查后不得擅自生成编码任务。"
+        },
+        {
+          "id": "ecc98d6a0fb74c998e51972d38980599",
+          "title": "验收业务约束",
+          "kind": "project",
+          "content": "B-001：只供一个可信管理员本机操作，不做身份认证。B-002：每个书目仅一册，书目编码唯一，书名必填，ISBN可空。B-003：借阅代号只能取A01至A10，借出时手填；同一册仅允许一笔未归还借阅。B-004：归还保留借阅历史；书目存在未归还记录时禁止归档。B-005：借出日期和归还日期采用本地日历日；无到期日、无罚款。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        },
+        {
+          "id": "c744c43d6adb4a8aa3d542ca0d13a6c8",
+          "title": "人工经验：防止重复提交",
+          "kind": "experience",
+          "content": "以往小工具出现过双击导致两条借阅记录。首版需禁用提交按钮，并在服务端以事务和唯一约束保证一册仅有一笔未归还记录；失败保留表单，明确提示原因。验收覆盖重复借出、重复归还以及必填输入为空。此经验仅属本验收项目。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        }
+      ],
+      "result_version_id": "fb0682ba2fdf47b2aa3b116771939ed8"
+    },
+    {
+      "number": 8,
+      "id": "bcebc7127c71422f8e001971446f1431",
+      "action": "design",
+      "status": "completed",
+      "created_at": "2026-10-28T06:26:33+00:00",
+      "error": "",
+      "base": {
+        "requirement": "a2a95b7335324783ad5743431951d074",
+        "decomposition": "fb0682ba2fdf47b2aa3b116771939ed8",
+        "design": null
+      },
+      "target_node_id": null,
+      "query": null,
+      "tools": [
+        {
+          "tool": "project_context",
+          "status": "completed",
+          "message": "读取 4 份内置知识/项目资料/人工经验；未读取其他项目"
+        },
+        {
+          "tool": "model_completion",
+          "status": "completed",
+          "message": "模型调用；计量来自供应商响应，未返回计量时不估算费用",
+          "finish_reason": "stop",
+          "usage": {
+            "prompt_tokens": 7767,
+            "completion_tokens": 3068,
+            "total_tokens": 10835,
+            "prompt_cache_hit_tokens": 256,
+            "prompt_cache_miss_tokens": 7511
+          }
+        }
+      ],
+      "citations": [
+        "knowledge-design-v1",
+        "ecc98d6a0fb74c998e51972d38980599",
+        "c744c43d6adb4a8aa3d542ca0d13a6c8"
+      ],
+      "evidence": [
+        {
+          "id": "knowledge-srs-v1",
+          "kind": "knowledge",
+          "title": "轻量 SRS 与人机共创约定",
+          "version": "1.0",
+          "content": "需求按以下十二节组织：背景与问题、目标与成功指标、用户与场景、范围与非目标、流程与业务规则、功能需求、数据与接口、非功能需求、约束与假设、验收与追踪、风险与待确认、决策与参考。使用 FR-001 等稳定编号；需求写清触发条件、输入、输出、异常和可测试验收。未知值必须列为待确认，不冒充用户已决定。每轮先回应用户，再提最多三个关键问题；成熟后输出完整需求候选稿，不能静默覆盖人工版本。"
+        },
+        {
+          "id": "knowledge-design-v1",
+          "kind": "knowledge",
+          "title": "递归模块与联合设计审查",
+          "version": "1.0",
+          "content": "模块按职责递归拆分到特性，归属树与依赖图分开；每节点标记范围、非职责、需求编号、验收、拆分依据。先整体设计和拆分，人工批准后再详细设计、静态原型和数据设计。三项设计同一版本包、共同引用特性 ID，非 UI 特性在原型标注不适用，非持久化特性在数据设计说明。细化接口、状态、异常、权限、关键交互、数据实体与约束。生成不是审批，设计审查后不得擅自生成编码任务。"
+        },
+        {
+          "id": "ecc98d6a0fb74c998e51972d38980599",
+          "title": "验收业务约束",
+          "kind": "project",
+          "content": "B-001：只供一个可信管理员本机操作，不做身份认证。B-002：每个书目仅一册，书目编码唯一，书名必填，ISBN可空。B-003：借阅代号只能取A01至A10，借出时手填；同一册仅允许一笔未归还借阅。B-004：归还保留借阅历史；书目存在未归还记录时禁止归档。B-005：借出日期和归还日期采用本地日历日；无到期日、无罚款。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        },
+        {
+          "id": "c744c43d6adb4a8aa3d542ca0d13a6c8",
+          "title": "人工经验：防止重复提交",
+          "kind": "experience",
+          "content": "以往小工具出现过双击导致两条借阅记录。首版需禁用提交按钮，并在服务端以事务和唯一约束保证一册仅有一笔未归还记录；失败保留表单，明确提示原因。验收覆盖重复借出、重复归还以及必填输入为空。此经验仅属本验收项目。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        }
+      ],
+      "result_version_id": "44f1683e38484e159430ead0a57dab3b"
+    },
+    {
+      "number": 9,
+      "id": "6b565316be754d679055624103ba787f",
+      "action": "design",
+      "status": "completed",
+      "created_at": "2026-10-28T06:28:37+00:00",
+      "error": "",
+      "base": {
+        "requirement": "a2a95b7335324783ad5743431951d074",
+        "decomposition": "fb0682ba2fdf47b2aa3b116771939ed8",
+        "design": "44f1683e38484e159430ead0a57dab3b"
+      },
+      "target_node_id": null,
+      "query": null,
+      "tools": [
+        {
+          "tool": "project_context",
+          "status": "completed",
+          "message": "读取 4 份内置知识/项目资料/人工经验；未读取其他项目"
+        },
+        {
+          "tool": "model_completion",
+          "status": "completed",
+          "message": "模型调用；计量来自供应商响应，未返回计量时不估算费用",
+          "finish_reason": "stop",
+          "usage": {
+            "prompt_tokens": 11287,
+            "completion_tokens": 4051,
+            "total_tokens": 15338,
+            "prompt_cache_hit_tokens": 384,
+            "prompt_cache_miss_tokens": 10903
+          }
+        }
+      ],
+      "citations": [
+        "knowledge-design-v1",
+        "ecc98d6a0fb74c998e51972d38980599",
+        "c744c43d6adb4a8aa3d542ca0d13a6c8"
+      ],
+      "evidence": [
+        {
+          "id": "knowledge-srs-v1",
+          "kind": "knowledge",
+          "title": "轻量 SRS 与人机共创约定",
+          "version": "1.0",
+          "content": "需求按以下十二节组织：背景与问题、目标与成功指标、用户与场景、范围与非目标、流程与业务规则、功能需求、数据与接口、非功能需求、约束与假设、验收与追踪、风险与待确认、决策与参考。使用 FR-001 等稳定编号；需求写清触发条件、输入、输出、异常和可测试验收。未知值必须列为待确认，不冒充用户已决定。每轮先回应用户，再提最多三个关键问题；成熟后输出完整需求候选稿，不能静默覆盖人工版本。"
+        },
+        {
+          "id": "knowledge-design-v1",
+          "kind": "knowledge",
+          "title": "递归模块与联合设计审查",
+          "version": "1.0",
+          "content": "模块按职责递归拆分到特性，归属树与依赖图分开；每节点标记范围、非职责、需求编号、验收、拆分依据。先整体设计和拆分，人工批准后再详细设计、静态原型和数据设计。三项设计同一版本包、共同引用特性 ID，非 UI 特性在原型标注不适用，非持久化特性在数据设计说明。细化接口、状态、异常、权限、关键交互、数据实体与约束。生成不是审批，设计审查后不得擅自生成编码任务。"
+        },
+        {
+          "id": "ecc98d6a0fb74c998e51972d38980599",
+          "title": "验收业务约束",
+          "kind": "project",
+          "content": "B-001：只供一个可信管理员本机操作，不做身份认证。B-002：每个书目仅一册，书目编码唯一，书名必填，ISBN可空。B-003：借阅代号只能取A01至A10，借出时手填；同一册仅允许一笔未归还借阅。B-004：归还保留借阅历史；书目存在未归还记录时禁止归档。B-005：借出日期和归还日期采用本地日历日；无到期日、无罚款。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        },
+        {
+          "id": "c744c43d6adb4a8aa3d542ca0d13a6c8",
+          "title": "人工经验：防止重复提交",
+          "kind": "experience",
+          "content": "以往小工具出现过双击导致两条借阅记录。首版需禁用提交按钮，并在服务端以事务和唯一约束保证一册仅有一笔未归还记录；失败保留表单，明确提示原因。验收覆盖重复借出、重复归还以及必填输入为空。此经验仅属本验收项目。",
+          "version": "1",
+          "created_at": "2026-10-28T05:51:06+00:00"
+        }
+      ],
+      "result_version_id": "d644c34c1f1c4b138c50638c132eca4c"
+    }
+  ],
+  "accounting": {
+    "application_calls": 9,
+    "completed": 6,
+    "failed": 3,
+    "usage_available_calls": 7,
+    "prompt_tokens": 42058,
+    "completion_tokens": 16584,
+    "total_tokens": 58642,
+    "prompt_cache_hit_tokens": 2048,
+    "prompt_cache_miss_tokens": 40010,
+    "amount": null,
+    "note": "前两次调用尚未记录usage；不推算人民币费用。失败输出也可能计费，以供应商账单为准。"
+  },
+  "local_rework": {
+    "base_version_id": "c2fbbd716adf44a690f44143627ea769",
+    "result_version_id": "fb0682ba2fdf47b2aa3b116771939ed8",
+    "changed_nodes": [
+      "M-LOAN-REC",
+      "F-LOAN-OUT",
+      "F-LOAN-RETURN"
+    ],
+    "other_nodes_unchanged": true,
+    "overview_unchanged": true
+  },
+  "checks": {
+    "pytest": "89 passed in 78.07s",
+    "typecheck": true,
+    "build": true,
+    "execution_gate": {
+      "http_status": 409,
+      "code": "PLANNING_EXECUTION_LOCKED",
+      "tasks": 0
+    },
+    "database_integrity": "ok",
+    "frontend_asset": "index-DUZfufsz.js"
+  }
+}

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>共享书架登记（原型）</title>
+<style>
+body{font-family:sans-serif;margin:0;background:#f5f6f8;color:#222}
+header{background:#2d4a7a;color:#fff;padding:12px 20px}
+main{max-width:960px;margin:16px auto;padding:0 16px}
+section{background:#fff;border:1px solid #dde;border-radius:6px;padding:14px;margin-bottom:16px}
+h2{font-size:16px;margin:0 0 10px}
+label{display:block;margin:6px 0 2px;font-size:13px}
+input,select{padding:5px;border:1px solid #bbc;border-radius:4px;width:220px}
+button{padding:6px 14px;border:0;border-radius:4px;background:#2d4a7a;color:#fff;margin-top:8px}
+button[disabled]{background:#99a;cursor:not-allowed}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border-bottom:1px solid #eee;padding:6px;text-align:left}
+.err{color:#b00;font-size:13px;margin-top:6px}
+.hint{color:#666;font-size:12px;margin-top:6px}
+.empty{color:#888;font-size:13px;padding:10px}
+.tag{font-size:12px;padding:1px 6px;border-radius:3px;background:#e6eefc}
+</style></head>
+<body>
+<header>本地共享书架登记工具 · 静态原型（无脚本）</header>
+<main>
+<section><h2>F-BOOK-CRUD 书目登记</h2>
+<label for="code">书目编码（唯一，必填，1–64字符）</label><input id="code" placeholder="如 B-0001">
+<label for="title">书名（必填，1–200字符）</label><input id="title">
+<label for="isbn">ISBN（可空，不超32字符，不校验校验位）</label><input id="isbn">
+<button type="button">登记</button>
+<p class="hint">防双击：点击后按钮置为“提交中…”并禁用，成功或失败后恢复。</p>
+<p class="err">示例错误：编码重复（409），已保留输入；书名或编码 trim 后为空、超长（422）。</p>
+</section>
+<section><h2>F-BOOK-CRUD 列表与归档筛选</h2>
+<label for="filter">归档筛选（默认未归档）</label>
+<select id="filter"><option selected>未归档</option><option>全部</option><option>已归档</option></select>
+<table><thead><tr><th>编码</th><th>书名</th><th>ISBN</th><th>状态</th><th>操作</th></tr></thead>
+<tbody>
+<tr><td>B-0001</td><td>示例书目一</td><td>—</td><td><span class="tag">未归档</span></td><td>借出 / 归档</td></tr>
+</tbody></table>
+<p class="hint">归档样例仅在“全部/已归档”筛选下出现：B-0002 示例书目二（已归档）。</p>
+<p class="empty">空状态示例：暂无符合条件的书目。</p>
+</section>
+<section><h2>F-LOAN-OUT 借出</h2>
+<label for="book">书目</label><input id="book" placeholder="选择或输入编码">
+<label for="member">成员代号（A01–A10）</label><input id="member">
+<label for="loaned">借出日期（YYYY-MM-DD，不可未来）</label><input id="loaned">
+<button type="button">借出</button>
+<p class="hint">防双击：提交中禁用按钮；服务端单事务兜底，双击只写一笔。</p>
+<p class="err">示例错误：代号非法或日期为未来（422）；已有未归还记录（409），不新增记录；数据库繁忙（503），可重试。</p>
+</section>
+<section><h2>F-LOAN-RETURN 归还</h2>
+<label for="loan">借阅记录</label><input id="loan" placeholder="选择未归还记录">
+<label for="returned">归还日期（YYYY-MM-DD，不早于借出、不可未来）</label><input id="returned">
+<button type="button">归还</button>
+<p class="hint">防双击：提交中禁用按钮；重复归还返回 409，历史不变。</p>
+<p class="err">示例错误：日期早于借出或为未来（422）；重复归还（409），历史不变；数据库繁忙（503），可重试。</p>
+</section>
+<section><h2>F-LOAN-RETURN 借阅历史</h2>
+<table><thead><tr><th>书目</th><th>代号</th><th>借出日</th><th>归还日</th><th>状态</th></tr></thead>
+<tbody>
+<tr><td>B-0001</td><td>A03</td><td>2026-10-01</td><td>—</td><td>未归还</td></tr>
+<tr><td>B-0002</td><td>A07</td><td>2026-09-10</td><td>2026-09-20</td><td>已归还</td></tr>
+</tbody></table>
+<p class="empty">空状态示例：暂无借阅历史。</p>
+</section>
+<section><h2>F-BOOK-ARCHIVE 归档</h2>
+<label for="arch">书目</label><input id="arch" placeholder="输入编码">
+<button type="button">归档（不可逆）</button>
+<p class="err">示例错误：存在未归还记录（409），禁止归档；已归档再归档（409）。</p>
+</section>
+</main></body></html>
