@@ -1,210 +1,95 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { get, post } from './api'
+import ModelSettings from './ModelSettings.vue'
+const modelSettingsOpen=ref(false)
+const modelSettingsTrigger=ref<HTMLButtonElement|null>(null)
+function closeModelSettings(){modelSettingsOpen.value=false;modelSettingsTrigger.value?.focus()}
 
-type RepositoryStatus = { exists: boolean; is_git: boolean; branch: string; commit_sha: string; changed_files: string[]; state: string }
-type Repository = { id: string; name: string; path: string; branch: string; commit_sha: string; status: RepositoryStatus }
-type Project = { id: string; name: string; status: string; workspace_path: string; task_counts: Record<string, number>; artifact_count: number; open_decisions: number }
-type Module = { id: string; name: string; description: string; parent_id?: string | null }
-type Feature = { id: string; module_id: string; name: string; description: string; status: string }
-type Execution = { id: string; status: string; started_at?: string; ended_at?: string; mcp_token?: string; receipts?: Array<{ report_id: string; summary: string; submitted_at: string; workspace_verification_json?: string }>; tests?: Array<{ id: string; status: string; command: string; exit_code?: number }>; conclusions?: Array<{ kind: string; status: string; summary: string; actor: string; created_at: string }> }
-type Task = { id: string; feature_id: string; title: string; description: string; acceptance: string; plan_status: string; ai_review_status: string; executions: Execution[] }
-type ProjectDetail = Project & { repositories: Repository[]; artifacts: Array<{ kind: string; title: string; version: string; version_status: string }>; modules: Module[]; features: Feature[]; tasks: Task[]; events: Array<{ event_type: string; entity_type: string; created_at: string }> }
+type Project = { id:string; name:string; status:string; workspace_path:string; task_counts:Record<string,number>; artifact_count:number; open_decisions:number }
+type Artifact = { id:string; kind:string; title:string; version:string; version_status:string; content?:string }
+type Module = { id:string; name:string; description:string; parent_id?:string|null }
+type Feature = { id:string; module_id:string; name:string; description:string; status:string }
+type Repository = { id:string; name:string; path:string; status:{state:string; branch:string; commit_sha:string; changed_files:string[]} }
+type Receipt = { report_id:string; summary:string; submitted_at:string; changed_files?:string[]; payload?:{workspace_verification?:{verified?:boolean;actual?:string[];missing?:string[];undeclared?:string[]}} }
+type TestRun = { id:string; status:string; command:string; exit_code?:number }
+type Conclusion = { kind:string; status:string; summary:string; actor:string; created_at:string }
+type Execution = { id:string; status:string; started_at?:string; ended_at?:string; receipts?:Receipt[]; tests?:TestRun[]; conclusions?:Conclusion[] }
+type Task = { id:string; feature_id:string; title:string; description:string; acceptance:string; plan_status:string; ai_review_status:string; ai_review_reason?:string; executions:Execution[] }
+type ProjectDetail = Project & { repositories:Repository[]; artifacts:Artifact[]; modules:Module[]; features:Feature[]; tasks:Task[]; events:Array<{id?:number;event_type:string;entity_type:string;created_at:string}> }
+type SplitResult = { proposal:Array<{title:string;description:string;acceptance:string}>; provider_mode:string; skills:string[] }
 
-const projects = ref<Project[]>([])
-const selectedId = ref('')
-const detail = ref<ProjectDetail | null>(null)
-const busy = ref(false)
-const error = ref('')
-const notice = ref('')
-const mcpTokens = ref<Record<string, string>>({})
-const selectedTask = ref<Task | null>(null)
-const projectName = ref('')
-const moduleName = ref('')
-const moduleDescription = ref('')
-const featureModuleId = ref('')
-const featureName = ref('')
-const featureDescription = ref('')
-const taskFeatureId = ref('')
-const taskTitle = ref('')
-const taskDescription = ref('')
-const taskAcceptance = ref('')
-const repositoryName = ref('')
-const repositoryPath = ref('')
-const selected = computed(() => detail.value)
-const activeModuleId = computed(() => featureModuleId.value || detail.value?.modules[0]?.id || '')
-const activeFeatureId = computed(() => taskFeatureId.value || detail.value?.features[0]?.id || '')
+const projects=ref<Project[]>([]), selectedId=ref(''), detail=ref<ProjectDetail|null>(null)
+const view=ref<'overview'|'requirements'|'delivery'>('overview'), selectedTaskId=ref('')
+const busyAction=ref(''), error=ref(''), notice=ref(''), sequence=ref(0)
+const showProjectModal=ref(false), projectName=ref(''), projectIdea=ref(''), requirementDraft=ref('')
+const moduleName=ref(''), moduleDescription=ref(''), featureModuleId=ref(''), featureName=ref(''), featureDescription=ref('')
+const taskFeatureId=ref(''), taskTitle=ref(''), taskDescription=ref(''), taskAcceptance=ref('')
+const repositoryName=ref(''), repositoryPath=ref(''), forceReason=ref('')
+const mcpTokens=ref<Record<string,string>>({}), promptContents=ref<Record<string,string>>({}), testCommands=ref<Record<string,string>>({}), splitResults=ref<Record<string,SplitResult>>({})
 
-function clearFeedback() { error.value = ''; notice.value = '' }
-async function loadProjects() {
-  projects.value = (await get<{ projects: Project[] }>('/api/v2/projects')).projects
-  if (!selectedId.value && projects.value[0]) selectedId.value = projects.value[0].id
-  if (selectedId.value) await loadDetail()
+const selected=computed(()=>detail.value)
+const selectedTask=computed(()=>detail.value?.tasks.find(task=>task.id===selectedTaskId.value) ?? null)
+const currentRequirement=computed(()=>detail.value?.artifacts.find(item=>item.kind==='requirement'))
+const orderedArtifacts=computed(()=>{ const order=['requirement','tech-stack','design-outline','prototype','database','scaffold']; return [...(detail.value?.artifacts ?? [])].sort((a,b)=>order.indexOf(a.kind)-order.indexOf(b.kind)) })
+const activeModuleId=computed(()=>detail.value?.modules.some(item=>item.id===featureModuleId.value) ? featureModuleId.value : '')
+const activeFeatureId=computed(()=>detail.value?.features.some(item=>item.id===taskFeatureId.value) ? taskFeatureId.value : '')
+const stage=computed(()=>{ if(!detail.value) return '尚未开始'; if(detail.value.status==='draft') return '需求草稿'; if(detail.value.status==='requirements') return '需求梳理'; if(detail.value.status==='requirements_confirmed') return '需求已确认'; if(!detail.value.modules.length) return '项目地基'; if(!detail.value.tasks.length) return '特性拆分'; return '开发执行' })
+const labels:Record<string,string>={draft:'草稿',requirements:'需求梳理中',requirements_confirmed:'需求已确认',active:'进行中',planned:'计划中',under_review:'待人工审核',pending:'待一审',passed:'已通过',failed:'未通过',approved:'已批准',executing:'执行中',machine_verifying:'机器校验中',awaiting_acceptance:'等待验收',rework_required:'需返工',completed:'已完成',accepted:'已验收',risk_accepted:'风险验收',superseded:'已作废'}
+const label=(value?:string)=>value ? (labels[value] ?? value) : '未开始'
+const latest=(task:Task)=>task.executions[0]?.status ?? ''
+const verification=(receipt:Receipt)=>receipt.payload?.workspace_verification
+const workbenchPassed=(execution:Execution)=>execution.conclusions?.some(item=>item.kind==='workbench' && item.status==='passed') ?? false
+
+function clearFeedback(){error.value='';notice.value=''}
+function resetContext(){selectedTaskId.value='';featureModuleId.value='';taskFeatureId.value='';forceReason.value='';view.value='overview'}
+async function loadProjects(preferred?:string){
+  const result=await get<{projects:Project[]}>('/api/v2/projects'); projects.value=result.projects
+  const next=preferred && projects.value.some(item=>item.id===preferred) ? preferred : selectedId.value && projects.value.some(item=>item.id===selectedId.value) ? selectedId.value : projects.value[0]?.id ?? ''
+  if(next!==selectedId.value){selectedId.value=next;resetContext()}
+  if(next) await loadDetail(next); else detail.value=null
 }
-async function loadDetail() {
-  if (!selectedId.value) return
-  detail.value = await get<ProjectDetail>('/api/v2/projects/' + selectedId.value)
-  if (!featureModuleId.value && detail.value.modules[0]) featureModuleId.value = detail.value.modules[0].id
-  if (!taskFeatureId.value && detail.value.features[0]) taskFeatureId.value = detail.value.features[0].id
+async function loadDetail(id=selectedId.value){
+  if(!id){detail.value=null;return}; const current=++sequence.value; const loaded=await get<ProjectDetail>('/api/v2/projects/'+id)
+  if(current!==sequence.value || id!==selectedId.value)return; detail.value=loaded
+  if(!loaded.modules.some(item=>item.id===featureModuleId.value)) featureModuleId.value=loaded.modules[0]?.id ?? ''
+  if(!loaded.features.some(item=>item.id===taskFeatureId.value)) taskFeatureId.value=loaded.features[0]?.id ?? ''
+  requirementDraft.value=currentRequirement.value?.content ?? ''
 }
-async function runAction(action: () => Promise<void>, success: string) {
-  busy.value = true
-  clearFeedback()
-  try { await action(); notice.value = success; await loadProjects() }
-  catch (e) { error.value = e instanceof Error ? e.message : String(e) }
-  finally { busy.value = false }
-}
-async function createProject() {
-  const name = projectName.value.trim()
-  if (!name) return
-  await runAction(async () => {
-    const created = await post<ProjectDetail>('/api/v2/projects', { name, requirement: '仓库管理控制台：登记仓库并展示分支与提交状态' })
-    projectName.value = ''
-    selectedId.value = created.id
-    detail.value = created
-  }, '项目已创建')
-}
-async function registerRepository() {
-  if (!selectedId.value || !repositoryPath.value.trim()) return
-  await runAction(async () => {
-    await post('/api/v2/projects/' + selectedId.value + '/repositories', { name: repositoryName.value.trim() || '主仓库', path: repositoryPath.value.trim() })
-    repositoryName.value = ''; repositoryPath.value = ''
-  }, '仓库已登记')
-}
-async function createModule() {
-  if (!selectedId.value || !moduleName.value.trim()) return
-  await runAction(async () => {
-    await post('/api/v2/projects/' + selectedId.value + '/modules', { name: moduleName.value.trim(), description: moduleDescription.value.trim() })
-    moduleName.value = ''; moduleDescription.value = ''; featureModuleId.value = ''
-  }, '模块已创建')
-}
-async function createFeature() {
-  if (!selectedId.value || !activeModuleId.value || !featureName.value.trim()) return
-  await runAction(async () => {
-    await post('/api/v2/projects/' + selectedId.value + '/features', { module_id: activeModuleId.value, name: featureName.value.trim(), description: featureDescription.value.trim() })
-    featureName.value = ''; featureDescription.value = ''; taskFeatureId.value = ''
-  }, '特性已创建')
-}
-async function createTask() {
-  if (!selectedId.value || !activeFeatureId.value || !taskTitle.value.trim()) return
-  await runAction(async () => {
-    await post('/api/v2/projects/' + selectedId.value + '/tasks', { feature_id: activeFeatureId.value, title: taskTitle.value.trim(), description: taskDescription.value.trim(), acceptance: taskAcceptance.value.trim() })
-    taskTitle.value = ''; taskDescription.value = ''; taskAcceptance.value = ''
-  }, '任务卡已创建')
-}
-async function reviewAndApprove(task: Task) {
-  await runAction(async () => {
-    const review = await post<{ ai_review_status: string }>('/api/v2/tasks/' + task.id + '/review', {})
-    if (review.ai_review_status !== 'passed') throw new Error('AI 一审未通过：请查看任务详情后人工强制批准')
-    await post('/api/v2/tasks/' + task.id + '/approve')
-  }, '任务卡已通过一审')
-}
-async function prepare(task: Task) {
-  await runAction(async () => {
-    await post('/api/v2/tasks/' + task.id + '/prompt')
-    const started = await post<{ execution: Execution; mcp_token: string }>('/api/v2/tasks/' + task.id + '/execute')
-    mcpTokens.value = { ...mcpTokens.value, [started.execution.id]: started.mcp_token }
-    notice.value = '执行已启动；MCP token 仅在本次页面会话显示，请立即复制'
-  }, '执行已启动，请使用 MCP 回执')
-}
-function latestExecution(task: Task) { return task.executions[0]?.status || 'not_started' }
-function openTask(task: Task) { selectedTask.value = task }
-function closeTask() { selectedTask.value = null }
-async function copyToken(token: string) {
-  try { await navigator.clipboard.writeText(token); notice.value = 'MCP token 已复制到剪贴板' }
-  catch { error.value = '浏览器未允许复制，请手动选择 token' }
-}
-onMounted(() => { loadProjects().catch(e => { error.value = String(e) }) })
+async function selectProject(id:string){if(id===selectedId.value)return;selectedId.value=id;resetContext();clearFeedback();try{await loadDetail(id)}catch(e){error.value=e instanceof Error?e.message:String(e)}}
+async function runAction(action:()=>Promise<void>,success:string,key='action'){busyAction.value=key;clearFeedback();try{await action();notice.value=success;await loadProjects(selectedId.value)}catch(e){error.value=e instanceof Error?e.message:String(e)}finally{busyAction.value=''}}
+function openProject(){clearFeedback();projectName.value='';projectIdea.value='';showProjectModal.value=true}
+function closeProject(){if(!busyAction.value)showProjectModal.value=false}
+async function createProject(){const name=projectName.value.trim();if(!name){error.value='请填写项目名称';return}await runAction(async()=>{const created=await post<ProjectDetail>('/api/v2/projects',{name,requirement:projectIdea.value.trim()});selectedId.value=created.id;showProjectModal.value=false;projectName.value='';projectIdea.value=''},'项目草稿已创建，请先完成需求梳理','project')}
+async function saveRequirement(confirm=false){if(!selectedId.value)return;await runAction(async()=>{await post('/api/v2/projects/'+selectedId.value+'/requirement',{content:requirementDraft.value.trim(),confirm})},confirm?'需求已确认，可以进入项目地基':'需求草稿已保存','requirement')}
+async function registerRepository(){if(!selectedId.value||!repositoryPath.value.trim())return;await runAction(async()=>{await post('/api/v2/projects/'+selectedId.value+'/repositories',{name:repositoryName.value.trim()||'主仓库',path:repositoryPath.value.trim()});repositoryName.value='';repositoryPath.value=''},'仓库已登记','repository')}
+async function createModule(){if(!selectedId.value||!moduleName.value.trim())return;await runAction(async()=>{await post('/api/v2/projects/'+selectedId.value+'/modules',{name:moduleName.value.trim(),description:moduleDescription.value.trim()});moduleName.value='';moduleDescription.value=''},'模块已创建','module')}
+async function createFeature(){if(!selectedId.value||!activeModuleId.value||!featureName.value.trim())return;await runAction(async()=>{await post('/api/v2/projects/'+selectedId.value+'/features',{module_id:activeModuleId.value,name:featureName.value.trim(),description:featureDescription.value.trim()});featureName.value='';featureDescription.value=''},'特性已创建','feature')}
+async function createTask(){if(!selectedId.value||!activeFeatureId.value||!taskTitle.value.trim())return;await runAction(async()=>{await post('/api/v2/projects/'+selectedId.value+'/tasks',{feature_id:activeFeatureId.value,title:taskTitle.value.trim(),description:taskDescription.value.trim(),acceptance:taskAcceptance.value.trim()});taskTitle.value='';taskDescription.value='';taskAcceptance.value=''},'任务卡已创建，下一步提交 AI 一审','task')}
+async function reviewTask(task:Task){await runAction(async()=>{await post('/api/v2/tasks/'+task.id+'/review',{})},'AI 一审已完成，请由人决定是否批准','review')}
+async function approveTask(task:Task,force=false){if(force&&!forceReason.value.trim()){error.value='人工强制批准需要填写理由';return}await runAction(async()=>{await post('/api/v2/tasks/'+task.id+'/approve',force?{force:true,reason:forceReason.value.trim()}:{});forceReason.value=''},force?'已记录人工强批理由，任务卡已批准':'任务卡已批准','approve')}
+async function prepare(task:Task){await runAction(async()=>{const prompt=await post<{content:string}>('/api/v2/tasks/'+task.id+'/prompt');promptContents.value={...promptContents.value,[task.id]:prompt.content};const started=await post<{execution:Execution;mcp_token:string}>('/api/v2/tasks/'+task.id+'/execute');mcpTokens.value={...mcpTokens.value,[started.execution.id]:started.mcp_token};selectedTaskId.value=task.id},'执行记录已创建；请使用 token 向本地 MCP 回报事实','execute')}
+async function splitTask(task:Task){await runAction(async()=>{const result=await post<SplitResult>('/api/v2/tasks/'+task.id+'/split');splitResults.value={...splitResults.value,[task.id]:result}},'已生成拆分提案，请人工审阅后再建卡','split')}
+async function runTest(execution:Execution){const command=testCommands.value[execution.id]?.trim();if(!selectedId.value||!command)return;await runAction(async()=>{await post('/api/v2/projects/'+selectedId.value+'/tests',{command,execution_id:execution.id})},'测试已运行，结果已回流到执行证据','test')}
+async function submitConclusion(execution:Execution,kind:'workbench'|'acceptance'){await runAction(async()=>{await post('/api/v2/executions/'+execution.id+'/'+(kind==='workbench'?'conclusion':'acceptance'),{status:kind==='workbench'?'passed':'accepted',summary:kind==='workbench'?'页面确认回执、测试与工作区校验结果。':'产品负责人确认本次执行结果。',actor:kind==='workbench'?'workbench-ui':'human',evidence:['execution:'+execution.id]})},kind==='workbench'?'工作台结论已提交':'人工验收已提交',kind)}
+async function copyText(value:string){try{await window.navigator.clipboard.writeText(value);notice.value='已复制到剪贴板'}catch{error.value='浏览器未允许复制，请手动选择内容'}}
+function closeTask(){selectedTaskId.value=''}
+function onEscape(event:KeyboardEvent){if(event.key==='Escape'){if(selectedTaskId.value)closeTask();else if(showProjectModal.value)closeProject()}}
+onMounted(()=>{window.addEventListener('keydown',onEscape);loadProjects().catch(e=>error.value=String(e))})
+onUnmounted(()=>window.removeEventListener('keydown',onEscape))
 </script>
 
 <template>
-  <div class="shell">
-    <header>
-      <div><span class="mark">⌘</span><strong>开发工作台</strong><small> Dev Workbench · v2</small></div>
-      <div class="header-actions"><span class="status-dot">●</span>本地控制室 <a class="docs-link" href="/api/docs" target="_blank">API 文档</a><form class="project-create" @submit.prevent="createProject"><input v-model="projectName" aria-label="项目名称" placeholder="输入项目名称" required :disabled="busy"><button type="submit" :disabled="busy">+ 新建项目</button></form></div>
-    </header>
-    <main>
-      <aside>
-        <div class="aside-title">项目 <span>{{ projects.length }}</span></div>
-        <button v-for="project in projects" :key="project.id" class="project" :class="{ active: selectedId === project.id }" @click="selectedId = project.id; loadDetail()">
-          <strong>{{ project.name }}</strong><small>{{ project.status }} · 产物 {{ project.artifact_count }}</small>
-        </button>
-        <p v-if="!projects.length" class="empty">还没有项目</p>
-      </aside>
-      <section class="content">
-        <div v-if="error" class="error">{{ error }}</div>
-        <div v-if="notice" class="notice">{{ notice }}</div>
-        <template v-if="selected">
-          <div class="hero"><div><p class="eyebrow">PROJECT CONTROL ROOM</p><h1>{{ selected.name }}</h1><p>一个项目内的需求、产物、任务、执行与验收证据。</p></div><button class="secondary" @click="loadDetail">↻ 刷新状态</button></div>
-          <div class="stats"><div><span>产物</span><b>{{ selected.artifact_count }}</b></div><div><span>模块</span><b>{{ selected.modules.length }}</b></div><div><span>任务卡</span><b>{{ selected.tasks.length }}</b></div><div><span>决策待办</span><b>{{ selected.open_decisions }}</b></div></div>
-          <article class="panel repository-panel"><div class="panel-heading"><div><h2>仓库登记与状态</h2><p class="panel-help">项目内登记仓库后，工作台读取分支、提交与工作区变化。</p></div><span>{{ selected.repositories.length }} 个仓库</span></div><div class="repository-list"><div v-for="repository in selected.repositories" :key="repository.id" class="repository-row"><div><strong>{{ repository.name }}</strong><small>{{ repository.path }}</small></div><div class="repository-state"><b>{{ repository.status.state }}</b><span>{{ repository.status.branch || "无分支" }} · {{ repository.status.commit_sha ? repository.status.commit_sha.slice(0, 8) : "无提交" }}</span><em v-if="repository.status.changed_files.length">变更 {{ repository.status.changed_files.length }} 个</em></div></div></div><form class="repository-form" @submit.prevent="registerRepository"><input v-model="repositoryName" placeholder="仓库名称" :disabled="busy"><input v-model="repositoryPath" placeholder="本地仓库路径" required :disabled="busy"><button :disabled="busy || !repositoryPath.trim()">登记仓库</button></form></article>
-          <div class="grid">
-            <article class="panel"><div class="panel-heading"><h2>六个项目节点</h2><span>ArtifactVersion</span></div><div class="artifacts"><div v-for="artifact in selected.artifacts" :key="artifact.kind" class="artifact"><span class="artifact-icon">◆</span><div><strong>{{ artifact.title }}</strong><small>{{ artifact.version }} · {{ artifact.version_status }}</small></div></div></div></article>
-            <article class="panel"><div class="panel-heading"><h2>最近事件</h2><span>{{ selected.events.length }}</span></div><div class="events"><div v-for="event in selected.events.slice(0, 8)" :key="event.created_at + event.entity_type + event.event_type" class="event"><span class="event-dot">●</span><div><strong>{{ event.event_type }}</strong><small>{{ event.entity_type }} · {{ event.created_at }}</small></div></div></div></article>
-          </div>
-          <article class="panel builder-panel">
-            <div class="panel-heading"><div><h2>主线建卡</h2><p class="panel-help">直接建立 Module → Feature → TaskCard，不必先切换到 API 页面。</p></div><span>Phase 1</span></div>
-            <div class="builder-grid">
-              <form class="builder-form" @submit.prevent="createModule"><h3>1 · 模块</h3><input v-model="moduleName" placeholder="模块名称" required :disabled="busy"><textarea v-model="moduleDescription" placeholder="模块职责（可选）" rows="2" :disabled="busy"></textarea><button :disabled="busy || !moduleName.trim()">创建模块</button></form>
-              <form class="builder-form" @submit.prevent="createFeature"><h3>2 · 特性</h3><select v-model="featureModuleId" required :disabled="busy || !selected.modules.length"><option value="" disabled>选择所属模块</option><option v-for="module in selected.modules" :key="module.id" :value="module.id">{{ module.name }}</option></select><input v-model="featureName" placeholder="特性名称" required :disabled="busy"><textarea v-model="featureDescription" placeholder="特性描述（可选）" rows="2" :disabled="busy"></textarea><button :disabled="busy || !activeModuleId || !featureName.trim()">创建特性</button></form>
-              <form class="builder-form" @submit.prevent="createTask"><h3>3 · 任务卡</h3><select v-model="taskFeatureId" required :disabled="busy || !selected.features.length"><option value="" disabled>选择所属特性</option><option v-for="feature in selected.features" :key="feature.id" :value="feature.id">{{ feature.name }}</option></select><input v-model="taskTitle" placeholder="任务标题" required :disabled="busy"><textarea v-model="taskDescription" placeholder="任务描述" rows="2" :disabled="busy"></textarea><textarea v-model="taskAcceptance" placeholder="验收标准" rows="2" :disabled="busy"></textarea><button :disabled="busy || !activeFeatureId || !taskTitle.trim()">创建任务卡</button></form>
-            </div>
-          </article>
-          <article class="panel task-panel"><div class="panel-heading"><h2>任务与执行</h2><span>{{ selected.tasks.length }} 张任务卡</span></div><div v-if="!selected.tasks.length" class="empty-panel">先在上方创建一张任务卡。</div><div v-for="task in selected.tasks" :key="task.id" class="task-row" @click="openTask(task)"><div class="task-main"><strong>{{ task.title }}</strong><small>{{ task.plan_status }} · 一审 {{ task.ai_review_status }} · 执行 {{ latestExecution(task) }}</small><p v-if="task.description">{{ task.description }}</p></div><div class="task-actions"><button v-if="task.plan_status !== 'approved' && task.plan_status !== 'superseded'" class="secondary" @click.stop="reviewAndApprove(task)" :disabled="busy">一审并批准</button><button v-if="task.plan_status === 'approved' && !['executing','machine_verifying','awaiting_acceptance'].includes(latestExecution(task))" @click.stop="prepare(task)" :disabled="busy">生成提示词并执行</button><div v-if="task.executions[0] && mcpTokens[task.executions[0].id]" class="token-box"><span>MCP token（仅本页）</span><code>{{ mcpTokens[task.executions[0].id] }}</code><button class="token-copy" @click.stop="copyToken(mcpTokens[task.executions[0].id])">复制</button></div><span class="details-hint">查看详情 →</span><a class="docs-link" href="/api/docs" target="_blank">回执 / CI</a></div></div></article>
-           <aside v-if="selectedTask" class="drawer-backdrop" @click.self="closeTask"><section class="task-drawer"><div class="drawer-heading"><div><p class="eyebrow">TASK DETAIL</p><h2>{{ selectedTask.title }}</h2></div><button class="secondary" @click="closeTask">关闭</button></div><p>{{ selectedTask.description }}</p><h3>验收标准</h3><p>{{ selectedTask.acceptance || '未填写' }}</p><h3>当前状态</h3><p class="drawer-status">{{ selectedTask.plan_status }} · 一审 {{ selectedTask.ai_review_status }} · 执行 {{ latestExecution(selectedTask) }}</p><div v-for="execution in selectedTask.executions" :key="execution.id" class="execution-card"><div class="execution-heading"><strong>{{ execution.id }}</strong><span>{{ execution.status }}</span></div><div v-if="mcpTokens[execution.id]" class="token-box"><span>MCP token（仅本页）</span><code>{{ mcpTokens[execution.id] }}</code><button class="token-copy" @click="copyToken(mcpTokens[execution.id])">复制</button></div><div v-if="execution.receipts?.length"><h4>回执</h4><p v-for="receipt in execution.receipts" :key="receipt.report_id">{{ receipt.summary }} · {{ receipt.submitted_at }}</p></div><div v-if="execution.tests?.length"><h4>TestRun / CI</h4><p v-for="test in execution.tests" :key="test.id">{{ test.status }} · {{ test.command }}</p></div><div v-if="execution.conclusions?.length"><h4>结论</h4><p v-for="conclusion in execution.conclusions" :key="conclusion.created_at">{{ conclusion.kind }} · {{ conclusion.status }} · {{ conclusion.summary }}</p></div></div></section></aside>
-         </template>
-        <div v-else class="empty-state"><h2>选择或新建项目</h2><p>第一阶段控制闭环从一个项目开始。</p></div>
-      </section>
-    </main>
-  </div>
+<div class="shell">
+<ModelSettings v-if="modelSettingsOpen" @close="closeModelSettings" />
+<header class="topbar"><div class="brand"><span class="brand-mark">⌘</span><div><strong>开发工作台</strong><small>Dev Workbench · 项目中枢</small></div></div><div class="top-actions"><button ref="modelSettingsTrigger" class="quiet-button" @click="modelSettingsOpen=true">设置 · 模型服务</button><span class="online"><i></i>本地服务正常</span><a href="/api/docs" target="_blank">开发者 API</a><button class="primary" @click="openProject">+ 新建项目</button></div></header>
+<main class="app-layout"><aside class="project-sidebar" aria-label="项目列表"><div class="sidebar-heading"><div><span class="eyebrow">PORTFOLIO</span><h2>我的项目</h2></div><span class="count-badge">{{projects.length}}</span></div><button v-for="project in projects" :key="project.id" class="project-item" :class="{active:selectedId===project.id}" @click="selectProject(project.id)"><span class="project-icon">{{project.name.slice(0,1)}}</span><span><strong>{{project.name}}</strong><small>{{label(project.status)}} · {{project.task_counts?.completed ?? 0}} 张已完成</small></span></button><div v-if="!projects.length" class="sidebar-empty"><strong>还没有项目</strong><p>从一个想法开始，先创建项目草稿。</p><button class="text-button" @click="openProject">创建第一个项目 →</button></div></aside>
+<section class="workspace"><div v-if="error" class="feedback error" role="alert"><strong>操作没有完成</strong><span>{{error}}</span><button aria-label="关闭错误" @click="error=''">×</button></div><div v-if="notice" class="feedback success" role="status"><span>{{notice}}</span><button aria-label="关闭提示" @click="notice=''">×</button></div>
+<template v-if="selected"><div class="workspace-header"><div><span class="eyebrow">PROJECT SPACE</span><div class="title-line"><h1>{{selected.name}}</h1><span class="status-pill">{{label(selected.status)}}</span></div><p>把需求变成可审阅、可执行、可验收的开发工作。</p></div><button class="quiet-button" :disabled="!!busyAction" @click="loadDetail()">刷新状态</button></div><nav class="stage-nav" aria-label="项目工作区"><button :class="{active:view==='overview'}" @click="view='overview'">项目概览</button><button :class="{active:view==='requirements'}" @click="view='requirements'">需求工作区</button><button :class="{active:view==='delivery'}" @click="view='delivery'">开发与验收</button></nav>
+<template v-if="view==='overview'"><section class="next-step card"><div><span class="eyebrow">当前工序</span><h2>{{stage}}</h2><p v-if="selected.status==='draft'">先把你的想法写进需求工作区，再决定是否正式进入开发。</p><p v-else-if="selected.status==='requirements'">继续补充需求，确认范围后再进入项目地基。</p><p v-else>从当前任务卡继续推进，所有证据都会留在项目内。</p></div><button class="primary" @click="view=selected.status==='draft'||selected.status==='requirements'?'requirements':'delivery'">进入当前工作区 →</button></section><div class="stat-grid"><div><span>需求版本</span><strong>{{currentRequirement?.version??'—'}}</strong></div><div><span>项目节点</span><strong>{{selected.artifact_count}} / 6</strong></div><div><span>模块与特性</span><strong>{{selected.modules.length}} / {{selected.features.length}}</strong></div><div><span>任务卡</span><strong>{{selected.tasks.length}}</strong></div></div><div class="overview-grid"><article class="card"><div class="card-heading"><div><span class="eyebrow">PROJECT FOUNDATION</span><h2>项目基础节点</h2></div><span>按真实流程推进</span></div><div class="artifact-list"><button v-for="(artifact,index) in orderedArtifacts" :key="artifact.id" class="artifact-item" @click="view=artifact.kind==='requirement'?'requirements':'delivery'"><span class="step-number">{{index+1}}</span><span><strong>{{artifact.title}}</strong><small>{{artifact.version}} · {{label(artifact.version_status)}}</small></span><span>→</span></button></div></article><article class="card"><div class="card-heading"><div><span class="eyebrow">RECENT ACTIVITY</span><h2>最近活动</h2></div><span>{{selected.events.length}}</span></div><p v-for="event in selected.events.slice(0,6)" :key="String(event.id)+event.created_at" class="event-line"><strong>{{event.event_type}}</strong><small>{{event.entity_type}} · {{event.created_at}}</small></p></article></div></template>
+<template v-else-if="view==='requirements'"><section class="work-area-header"><div><span class="eyebrow">REQUIREMENT WORKSPACE</span><h2>先把想法说清楚，再决定怎么做</h2><p>连续工作区：保存草稿不会立项，确认后才进入下一阶段。</p></div><span class="stage-marker">{{label(selected.status)}}</span></section><div class="requirement-layout"><article class="card conversation"><label for="requirement-draft">需求底稿</label><textarea id="requirement-draft" v-model="requirementDraft" rows="15" placeholder="描述要解决的问题、目标用户、范围和验收标准。暂时不确定的地方也可以先写下来。"></textarea><div class="form-actions"><button class="quiet-button" :disabled="busyAction==='requirement'" @click="saveRequirement(false)">保存草稿</button><button class="primary" :disabled="busyAction==='requirement'||!requirementDraft.trim()" @click="saveRequirement(true)">确认需求与范围</button></div></article><aside class="card rolling-draft"><div class="card-heading"><div><span class="eyebrow">ROLLING DRAFT</span><h3>当前底稿</h3></div><span>{{currentRequirement?.version??'v1.0'}}</span></div><div class="draft-section"><span>已记录</span><p>{{requirementDraft||'等待你的第一段描述'}}</p></div><div class="draft-section"><span>下一步</span><p>{{selected.status==='requirements_confirmed'?'进入项目地基，开始建立模块与基础节点。':'补充目标、范围和验收标准，再由人确认。'}}</p></div><div class="gate-note">需求确认是人工门禁，工作台不会把草稿自动当成正式立项。</div></aside></div></template>
+<template v-else><section class="work-area-header"><div><span class="eyebrow">DELIVERY WORKSPACE</span><h2>从结构到任务，再到证据与验收</h2><p>集中处理开发准备、任务审核、执行回执和测试结果。</p></div><span class="stage-marker">{{selected.tasks.length}} 张任务卡</span></section><article class="card repository-card"><div class="card-heading"><div><h2>执行目标</h2><p>确认目录、分支和提交后再执行。</p></div><span>{{selected.repositories.length}} 个仓库</span></div><div v-for="repository in selected.repositories" :key="repository.id" class="repository-row"><div><strong>{{repository.name}}</strong><small>{{repository.path}}</small></div><div class="repository-state"><b>{{repository.status.state==='not_git'?'尚未初始化 Git':repository.status.state}}</b><span>{{repository.status.branch||'无分支'}} · {{repository.status.commit_sha?repository.status.commit_sha.slice(0,8):'无提交'}}</span></div></div><form class="inline-form" @submit.prevent="registerRepository"><input v-model="repositoryName" placeholder="仓库名称"><input v-model="repositoryPath" placeholder="本地仓库路径" required><button class="quiet-button" :disabled="busyAction==='repository'||!repositoryPath.trim()">登记仓库</button></form></article><article class="card builder-card"><div class="card-heading"><div><span class="eyebrow">STRUCTURE</span><h2>按结构建立工作</h2></div><span>Module → Feature → TaskCard</span></div><div class="builder-grid"><form @submit.prevent="createModule"><h3>建立模块</h3><input v-model="moduleName" placeholder="模块名称" required><textarea v-model="moduleDescription" rows="3" placeholder="模块职责（可选）"></textarea><button class="quiet-button" :disabled="busyAction==='module'">创建模块</button></form><form @submit.prevent="createFeature"><h3>建立特性</h3><select v-model="featureModuleId" required><option value="" disabled>选择所属模块</option><option v-for="module in selected.modules" :key="module.id" :value="module.id">{{module.name}}</option></select><input v-model="featureName" placeholder="特性名称" required><textarea v-model="featureDescription" rows="3" placeholder="用户价值与范围"></textarea><button class="quiet-button" :disabled="busyAction==='feature'||!activeModuleId">创建特性</button></form><form @submit.prevent="createTask"><h3>建立任务卡</h3><select v-model="taskFeatureId" required><option value="" disabled>选择所属特性</option><option v-for="feature in selected.features" :key="feature.id" :value="feature.id">{{feature.name}}</option></select><input v-model="taskTitle" placeholder="任务标题" required><textarea v-model="taskDescription" rows="2" placeholder="任务描述"></textarea><textarea v-model="taskAcceptance" rows="2" placeholder="验收标准"></textarea><button class="primary" :disabled="busyAction==='task'||!activeFeatureId">创建任务卡</button></form></div></article><article class="card task-list"><div class="card-heading"><div><span class="eyebrow">WORK QUEUE</span><h2>任务与执行证据</h2></div><span>{{selected.tasks.length}} 张</span></div><div v-if="!selected.tasks.length" class="empty-panel">先建立一个模块和特性，再创建第一张任务卡。</div><div v-for="task in selected.tasks" :key="task.id" class="task-row" role="button" tabindex="0" @click="selectedTaskId=task.id" @keydown.enter="selectedTaskId=task.id"><div class="task-main"><strong>{{task.title}}</strong><small>{{label(task.plan_status)}} · 一审 {{label(task.ai_review_status)}} · 执行 {{label(latest(task))}}</small><p v-if="task.description">{{task.description}}</p></div><div class="task-actions"><button v-if="task.plan_status!=='approved'&&task.plan_status!=='superseded'" class="quiet-button" @click.stop="reviewTask(task)" :disabled="!!busyAction">提交 AI 一审</button><button v-if="task.plan_status==='under_review'&&task.ai_review_status==='passed'" class="primary" @click.stop="approveTask(task)" :disabled="!!busyAction">人工批准</button><button v-if="task.plan_status==='approved'&&!['executing','machine_verifying','awaiting_acceptance'].includes(latest(task))" class="primary" @click.stop="prepare(task)" :disabled="!!busyAction">生成提示词并开始</button><span class="details-hint">查看详情 →</span></div><div v-if="splitResults[task.id]" class="split-proposal"><strong>拆分提案（{{splitResults[task.id].provider_mode}}）</strong><span v-for="item in splitResults[task.id].proposal" :key="item.title">{{item.title}}</span></div></div></article></template></template><div v-else class="empty-workspace"><div class="empty-illustration">⌘</div><h2>从一个项目草稿开始</h2><p>项目创建不会自动写入任何测试需求。</p><button class="primary" @click="openProject">+ 创建项目草稿</button></div></section></main>
+<div v-if="showProjectModal" class="modal-backdrop" @click.self="closeProject"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="new-project-title"><div class="modal-heading"><div><span class="eyebrow">NEW PROJECT</span><h2 id="new-project-title">创建项目草稿</h2></div><button class="icon-button" aria-label="关闭" @click="closeProject">×</button></div><p>先给项目一个名字和初始想法。创建后进入需求工作区，确认前不会进入开发流程。</p><label for="project-name">项目名称</label><input id="project-name" v-model="projectName" autofocus placeholder="例如：客户工单平台" required><label for="project-idea">初始想法 <span>可选</span></label><textarea id="project-idea" v-model="projectIdea" rows="5" placeholder="想解决什么问题？先写你知道的部分即可。"></textarea><div class="modal-actions"><button class="quiet-button" @click="closeProject">稍后再说</button><button class="primary" :disabled="busyAction==='project'||!projectName.trim()" @click="createProject">创建草稿并继续</button></div></section></div>
+<div v-if="selectedTask" class="drawer-backdrop" @click.self="closeTask"><section class="task-drawer" role="dialog" aria-modal="true" aria-labelledby="task-detail-title"><div class="drawer-heading"><div><span class="eyebrow">TASK DETAIL</span><h2 id="task-detail-title">{{selectedTask.title}}</h2></div><button class="icon-button" aria-label="关闭任务详情" @click="closeTask">×</button></div><p>{{selectedTask.description||'暂无任务描述'}}</p><div class="drawer-status-grid"><div><span>任务</span><strong>{{label(selectedTask.plan_status)}}</strong></div><div><span>AI 一审</span><strong>{{label(selectedTask.ai_review_status)}}</strong></div><div><span>执行</span><strong>{{label(latest(selectedTask))}}</strong></div></div><h3>验收标准</h3><p>{{selectedTask.acceptance||'未填写'}}</p><div v-if="selectedTask.ai_review_reason" class="review-note" :class="{failed:selectedTask.ai_review_status==='failed'}"><strong>一审意见</strong><p>{{selectedTask.ai_review_reason}}</p></div><div class="drawer-actions"><button v-if="selectedTask.plan_status!=='approved'&&selectedTask.plan_status!=='superseded'" class="quiet-button" @click="reviewTask(selectedTask)" :disabled="!!busyAction">重新提交一审</button><button v-if="selectedTask.plan_status==='under_review'&&selectedTask.ai_review_status==='passed'" class="primary" @click="approveTask(selectedTask)" :disabled="!!busyAction">批准任务卡</button><input v-if="selectedTask.plan_status==='under_review'&&selectedTask.ai_review_status==='failed'" v-model="forceReason" placeholder="人工强批理由"><button v-if="selectedTask.plan_status==='under_review'&&selectedTask.ai_review_status==='failed'" class="danger-button" @click="approveTask(selectedTask,true)" :disabled="!!busyAction">带理由强批</button></div><div v-if="promptContents[selectedTask.id]" class="prompt-preview"><div class="section-heading"><h3>本次提示词</h3><button class="text-button" @click="copyText(promptContents[selectedTask.id])">复制</button></div><pre>{{promptContents[selectedTask.id]}}</pre></div><section v-for="execution in selectedTask.executions" :key="execution.id" class="execution-card"><div class="execution-heading"><div><span class="eyebrow">EXECUTION</span><strong>{{execution.id}}</strong></div><span class="status-pill">{{label(execution.status)}}</span></div><div v-if="mcpTokens[execution.id]" class="token-box"><span>本次 MCP token（只显示于当前会话）</span><code>{{mcpTokens[execution.id]}}</code><button class="text-button" @click="copyText(mcpTokens[execution.id])">复制</button></div><div v-if="execution.receipts?.length" class="evidence-block"><h4>回执事实</h4><div v-for="receipt in execution.receipts" :key="receipt.report_id" class="evidence-line"><strong>{{receipt.summary}}</strong><span>工作区校验：{{verification(receipt)?.verified?'通过':'需返工'}} · {{receipt.submitted_at}}</span></div></div><div v-else class="empty-evidence">尚未收到本地 MCP 回执。执行代理完成后，请回报 changed_files、命令、测试和已知问题。</div><div v-if="execution.tests?.length" class="evidence-block"><h4>测试与 CI</h4><div v-for="test in execution.tests" :key="test.id" class="evidence-line"><strong>{{label(test.status)}}</strong><span>{{test.command}} · exit {{test.exit_code??'—'}}</span></div></div><form v-if="execution.status==='awaiting_acceptance'||execution.status==='rework_required'" class="test-form" @submit.prevent="runTest(execution)"><input v-model="testCommands[execution.id]" placeholder="测试命令，例如 python -m pytest tests -q"><button class="quiet-button" type="submit" :disabled="!!busyAction||!testCommands[execution.id]?.trim()">运行测试</button></form><div v-if="execution.conclusions?.length" class="evidence-block"><h4>结论</h4><div v-for="item in execution.conclusions" :key="item.kind+item.created_at" class="evidence-line"><strong>{{item.kind==='acceptance'?'人工验收':'工作台结论'}} · {{label(item.status)}}</strong><span>{{item.summary}}</span></div></div><div class="execution-actions"><button v-if="execution.status==='awaiting_acceptance'" class="quiet-button" @click="submitConclusion(execution,'workbench')" :disabled="!!busyAction">提交工作台结论</button><button v-if="execution.status==='awaiting_acceptance'" class="primary" @click="submitConclusion(execution,'acceptance')" :disabled="!!busyAction||!workbenchPassed(execution)" :title="workbenchPassed(execution)?'':'先提交通过的工作台结论'">人工验收</button><small v-if="execution.status==='awaiting_acceptance'&&!workbenchPassed(execution)">先完成工作台结论，人工验收按钮才可用。</small></div></section></section></div>
+</div>
 </template>
-
-<style scoped>
-.docs-link { color: #79e2bc; text-decoration: none; font-size: 12px; margin-right: 12px; }
-.docs-link:hover { text-decoration: underline; }
-.project-create { display: inline-flex; gap: 7px; align-items: center; margin-left: 6px; }
-.project-create input { width: 150px; box-sizing: border-box; border: 1px solid #30455d; border-radius: 6px; background: #0d1725; color: #dce7f4; padding: 8px 9px; font: inherit; font-size: 12px; }
-.notice { color: #79e2bc; background: #122d2a; border: 1px solid #246357; padding: 11px 14px; border-radius: 8px; margin-bottom: 18px; }
-.repository-panel { margin-top: 18px; }
-.repository-list { display: grid; gap: 9px; }
-.repository-row { display: flex; justify-content: space-between; gap: 16px; padding: 11px 0; border-top: 1px solid #243248; }
-.repository-row:first-child { border-top: 0; }
-.repository-row small, .repository-state span, .repository-state em { display: block; color: #8194aa; font-size: 11px; margin-top: 4px; }
-.repository-state { text-align: right; }
-.repository-state b { color: #79e2bc; }
-.repository-state em { color: #f2c879; font-style: normal; }
-.repository-form { display: grid; grid-template-columns: 1fr 2fr auto; gap: 8px; margin-top: 14px; }
-.builder-panel { margin-top: 18px; }
-.panel-help { color: #8194aa; font-size: 12px; margin: 6px 0 0; }
-.builder-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-.builder-form { display: flex; flex-direction: column; gap: 9px; padding: 14px; border: 1px solid #263b52; border-radius: 10px; background: #111c2b; }
-.builder-form h3 { margin: 0 0 3px; font-size: 14px; color: #dce7f4; }
-.builder-form input, .builder-form textarea, .builder-form select { width: 100%; box-sizing: border-box; border: 1px solid #30455d; border-radius: 6px; background: #0d1725; color: #dce7f4; padding: 9px 10px; font: inherit; font-size: 12px; }
-.builder-form textarea { resize: vertical; }
-.builder-form button { align-self: flex-start; }
-.task-row { display: flex; gap: 18px; align-items: center; justify-content: space-between; padding: 15px 0; border-top: 1px solid #243248; }
-.task-row:first-of-type { border-top: 0; }
-.task-main { min-width: 0; }
-.task-main strong, .task-main small, .task-main p { display: block; }
-.task-main small { color: #79e2bc; margin-top: 5px; font-size: 11px; }
-.task-main p { color: #8194aa; font-size: 12px; margin: 7px 0 0; }
-.task-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.token-box { display: grid; gap: 2px; max-width: 230px; color: #f2c879; font-size: 10px; }
-.token-box code { overflow-wrap: anywhere; color: #dce7f4; font-size: 10px; }
-.empty-panel { color: #8194aa; padding: 14px 0; }
-.details-hint { color: #79e2bc; font-size: 11px; white-space: nowrap; }
-.drawer-backdrop { position: fixed; inset: 0; z-index: 20; display: flex; justify-content: flex-end; background: rgba(3, 9, 16, .72); }
-.task-drawer { width: min(560px, 92vw); height: 100%; overflow: auto; box-sizing: border-box; padding: 26px; background: #101c2c; border-left: 1px solid #30455d; box-shadow: -12px 0 40px rgba(0,0,0,.3); }
-.drawer-heading, .execution-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-.task-drawer h2 { margin: 0 0 10px; }
-.task-drawer h3 { margin: 22px 0 5px; color: #dce7f4; font-size: 13px; }
-.task-drawer h4 { margin: 12px 0 4px; color: #79e2bc; font-size: 12px; }
-.task-drawer p { color: #aebed0; line-height: 1.55; }
-.drawer-status { color: #f2c879 !important; }
-.execution-card { margin-top: 14px; padding: 13px; border: 1px solid #2b4058; border-radius: 9px; background: #0d1725; }
-.execution-heading span { color: #79e2bc; font-size: 11px; }
-.token-copy { border: 1px solid #41627e; border-radius: 5px; background: #182b40; color: #dce7f4; padding: 3px 7px; font-size: 10px; cursor: pointer; }
-.task-row { cursor: pointer; }
-.task-row:hover { background: rgba(43, 64, 88, .24); }
-@media (max-width: 900px) { .builder-grid { grid-template-columns: 1fr; } .repository-form { grid-template-columns: 1fr; } .repository-row { align-items: flex-start; flex-direction: column; } .repository-state { text-align: left; } .task-row { align-items: flex-start; flex-direction: column; } .task-actions { width: 100%; } }
-</style>

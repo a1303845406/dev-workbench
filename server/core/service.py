@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import secrets
 import subprocess
 import uuid
@@ -41,7 +42,8 @@ class Workbench:
     def __init__(self, db: Database, root: Path):
         self.db = db
         self.root = root
-        self.provider = Provider()
+        from .model_settings import ModelSettings
+        self.provider = Provider(ModelSettings(root).effective())
 
     def event(self, conn, project_id: str, event_type: str, entity_type: str, entity_id: str, payload: Any, actor: str = "system") -> None:
         conn.execute("INSERT INTO events(project_id,event_type,entity_type,entity_id,payload_json,actor,created_at) VALUES(?,?,?,?,?,?,?)", (project_id, event_type, entity_type, entity_id, jdump(payload), actor, now()))
@@ -69,7 +71,7 @@ class Workbench:
                     created_dirs.append(cursor)
                     cursor = cursor.parent
                 workspace.mkdir(parents=True, exist_ok=True)
-                conn.execute("INSERT INTO projects(id,name,workspace_path,created_at,updated_at) VALUES(?,?,?,?,?)", (project_id, name, str(workspace), timestamp, timestamp))
+                conn.execute("INSERT INTO projects(id,name,status,workspace_path,created_at,updated_at) VALUES(?,?,?,?,?,?)", (project_id, name, "draft", str(workspace), timestamp, timestamp))
                 repository_name = str(data.get("repository_name") or "主仓库").strip() or "主仓库"
                 conn.execute("INSERT INTO repositories(id,project_id,name,path,branch,commit_sha,created_at) VALUES(?,?,?,?,?,?,?)", (repository_id, project_id, repository_name, str(workspace), data.get("branch", ""), data.get("commit_sha", ""), timestamp))
                 self.event(conn, project_id, "project_created", "Project", project_id, {"name": name})
@@ -100,6 +102,25 @@ class Workbench:
 
     def list_projects(self) -> list[dict[str, Any]]:
         return [self.summary(row(item)) for item in self.db.all("SELECT * FROM projects ORDER BY created_at DESC")]
+
+    def requirement(self, project_id: str) -> dict[str, Any]:
+        self.project(project_id)
+        artifact = self.db.one("SELECT id FROM artifacts WHERE project_id=? AND kind='requirement' ORDER BY created_at LIMIT 1", (project_id,))
+        if not artifact:
+            raise DomainError("REQUIREMENT_NOT_FOUND", "requirement artifact not found", 404)
+        return self.artifact(artifact["id"])
+
+    def save_requirement(self, project_id: str, content: str, confirm: bool = False) -> dict[str, Any]:
+        content = str(content or "").strip()
+        if confirm and not content:
+            raise DomainError("INVALID_REQUIREMENT", "a confirmed requirement must not be blank", 422)
+        current = self.requirement(project_id)
+        version = self.new_version(current["id"], {"content": content, "status": "approved" if confirm else "draft"})
+        status = "requirements_confirmed" if confirm else "requirements"
+        with self.db.tx() as conn:
+            conn.execute("UPDATE projects SET status=?,updated_at=? WHERE id=?", (status, now(), project_id))
+            self.event(conn, project_id, "requirement_confirmed" if confirm else "requirement_draft_saved", "ArtifactVersion", version["version_id"], {"version": version["version"], "status": version["version_status"]}, "human")
+        return self.get_project(project_id)
 
     def summary(self, project: dict[str, Any]) -> dict[str, Any]:
         project["task_counts"] = {item["plan_status"]: item["count"] for item in self.db.all("SELECT plan_status,COUNT(*) AS count FROM task_cards WHERE project_id=? GROUP BY plan_status", (project["id"],))}
@@ -276,13 +297,15 @@ class Workbench:
                   "Skills:\n" + skill_text + "\nTask:\n" + json.dumps({"title": task["title"], "description": task["description"], "acceptance": task["acceptance"]}, ensure_ascii=False))
         provider_mode = self.provider.mode
         proposal = []
-        if provider_mode == "real":
+        if provider_mode != "deterministic":
             try:
                 raw = __import__("asyncio").run(self.provider.complete("You split software tasks. JSON array only.", prompt))
                 proposal = json.loads(re.search(r"\[.*\]", raw, re.DOTALL).group(0))
+                if not isinstance(proposal, list) or not proposal or len(proposal) > 20 or any(not isinstance(item, dict) or any(not isinstance(item.get(key), str) or not item[key].strip() for key in ("title", "description", "acceptance")) for item in proposal):
+                    raise ValueError("invalid task proposal")
             except Exception:
-                proposal = []
-        if not proposal:
+                raise DomainError("MODEL_SPLIT_FAILED", "模型任务拆分调用或响应解析失败；没有生成规则替代结果。", 502) from None
+        if provider_mode == "deterministic":
             proposal = [{"title": task["title"] + " - 核心实现", "description": task["description"], "acceptance": task["acceptance"]}, {"title": task["title"] + " - 测试验收", "description": "为核心实现补充自动化测试并验证验收标准。", "acceptance": "测试通过且结果可复现。"}]
         split_id, timestamp = uid("split"), now()
         with self.db.tx() as conn:
@@ -295,7 +318,7 @@ class Workbench:
         if not data:
             raise DomainError("TASK_NOT_FOUND", "task not found", 404)
         data["prompts"] = [row(item) for item in self.db.all("SELECT id,provider_mode,created_at FROM prompt_instances WHERE task_card_id=? ORDER BY created_at DESC", (task_id,))]
-        data["executions"] = [unpack(row(item)) for item in self.db.all("SELECT * FROM execution_runs WHERE task_card_id=? ORDER BY created_at DESC", (task_id,))]
+        data["executions"] = [self.execution(item["id"]) for item in self.db.all("SELECT id FROM execution_runs WHERE task_card_id=? ORDER BY created_at DESC", (task_id,))]
         return data
 
     def tasks(self, project_id: str) -> list[dict[str, Any]]:

@@ -29,6 +29,9 @@ class ArtifactIn(BaseModel):
     kind: str
     title: str
     content: str = ""
+class RequirementIn(BaseModel):
+    content: str = ""
+    confirm: bool = False
 class RepositoryIn(BaseModel):
     name: str = "主仓库"
     path: str
@@ -132,6 +135,8 @@ def create_project(body: ProjectIn): return wb().create_project(body.model_dump(
 def project(project_id: str): return wb().get_project(project_id)
 @router.post("/projects/{project_id}/artifacts", status_code=201)
 def artifact(project_id: str, body: ArtifactIn): return wb().create_artifact(project_id, body.kind, body.title, body.content)
+@router.post("/projects/{project_id}/requirement")
+def requirement(project_id: str, body: RequirementIn): return wb().save_requirement(project_id, body.content, body.confirm)
 @router.post("/projects/{project_id}/repositories", status_code=201)
 def repository(project_id: str, body: RepositoryIn): return wb().register_repository(project_id, body.model_dump())
 @router.post("/artifacts/{artifact_id}/versions", status_code=201)

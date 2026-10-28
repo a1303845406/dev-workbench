@@ -6,35 +6,39 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
+
+from .model_settings import ModelSettings
 from typing import Any
 
 import httpx
 
 
 class Provider:
-    def __init__(self):
-        self.base_url = os.environ.get("DEVWB_PROVIDER_BASE_URL", "").rstrip("/")
-        self.api_key = os.environ.get("DEVWB_PROVIDER_API_KEY", "")
-        self.model = os.environ.get("DEVWB_PROVIDER_MODEL", "")
-        self.codex_enabled = os.environ.get("DEVWB_CODEX_ENABLED", "").lower() in {"1", "true", "yes"}
+    def __init__(self, config: dict | None = None):
+        config = config if config is not None else ModelSettings().effective()
+        self.base_url = config["base_url"]
+        self.api_key = config["api_key"]
+        self.model = config["model"]
+        self._mode = config["mode"]
+        self.codex_enabled = self._mode == "codex"
         self.codex_command = os.environ.get("DEVWB_CODEX_COMMAND", "codex")
         self.context_window = int(os.environ.get("DEVWB_CODEX_CONTEXT_WINDOW", "500000"))
 
     @property
     def mode(self) -> str:
-        if self.codex_enabled and self.model:
-            return "codex"
-        return "real" if self.base_url and self.api_key and self.model else "deterministic"
+        return self._mode
 
     def _codex_executable(self) -> str:
         return shutil.which(self.codex_command) or self.codex_command
 
-    def _codex_complete(self, system: str, user: str) -> str:
+    def _codex_complete(self, system: str, user: str, timeout: int = 90) -> str:
         prompt = system + "\n\n" + user
-        command = [self._codex_executable(), "exec", "--ephemeral", "--skip-git-repo-check", "-m", self.model, "-c", f"model_context_window={self.context_window}", "--json", prompt]
-        completed = subprocess.run(command, text=True, capture_output=True, timeout=180, check=False)
+        command = [self._codex_executable(), "exec", "--ephemeral", "--sandbox", "read-only", "--skip-git-repo-check", "-m", self.model, "-c", f"model_context_window={self.context_window}", "--json", prompt]
+        with tempfile.TemporaryDirectory(prefix="devwb-model-") as folder:
+            completed = subprocess.run(command, cwd=folder, text=True, capture_output=True, timeout=timeout, check=False)
         if completed.returncode != 0:
-            raise RuntimeError("codex exited with code " + str(completed.returncode) + ": " + completed.stderr[-1000:])
+            raise RuntimeError("Codex 调用失败，退出码 " + str(completed.returncode))
         messages: list[str] = []
         for line in completed.stdout.splitlines():
             try:
@@ -91,6 +95,6 @@ class Provider:
             status = result.get("status")
             if status not in ("passed", "failed"):
                 raise ValueError("provider returned invalid review status")
-            return {"status": status, "reason": str(result.get("reason", "")), "provider_mode": self.mode}
-        except Exception as exc:
-            return {"status": "failed", "reason": "provider review failed: " + str(exc), "provider_mode": self.mode}
+            return {"status": status, "reason": str(result.get("reason", "")).replace(self.api_key, "[REDACTED]") if self.api_key else str(result.get("reason", "")), "provider_mode": self.mode}
+        except Exception:
+            return {"status": "failed", "reason": "模型审核调用或响应解析失败，请检查模型设置与连接。", "provider_mode": self.mode}

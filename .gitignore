@@ -16,6 +16,9 @@ frontend/.npm-cache/
 *.local
 
 # --- Runtime data (product data roots) ---
+workspace/private/
+.env*
+!.env.example
 workspace/*.sqlite3
 workspace/projects/*
 workspace/logs/*

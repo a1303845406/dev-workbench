@@ -28,6 +28,29 @@ def create_flow(client):
     assert task.status_code == 201
     return pid, task.json()['id']
 
+def test_project_starts_as_draft_without_demo_requirement_and_can_confirm_requirement(client):
+    project = client.post('/api/v2/projects', json={'name': 'draft-project', 'requirement': ''})
+    assert project.status_code == 201, project.text
+    body = project.json()
+    assert body['status'] == 'draft'
+    requirement = next(item for item in body['artifacts'] if item['kind'] == 'requirement')
+    assert requirement['content'] == ''
+    assert '仓库管理控制台' not in requirement['content']
+
+    saved = client.post(f"/api/v2/projects/{body['id']}/requirement", json={'content': '整理客户工单并支持按状态筛选', 'confirm': False})
+    assert saved.status_code == 200
+    assert saved.json()['status'] == 'requirements'
+    assert next(item for item in saved.json()['artifacts'] if item['kind'] == 'requirement')['version_status'] == 'draft'
+
+    confirmed = client.post(f"/api/v2/projects/{body['id']}/requirement", json={'content': '整理客户工单并支持按状态筛选', 'confirm': True})
+    assert confirmed.status_code == 200
+    assert confirmed.json()['status'] == 'requirements_confirmed'
+    assert next(item for item in confirmed.json()['artifacts'] if item['kind'] == 'requirement')['version_status'] == 'approved'
+
+    blank = client.post(f"/api/v2/projects/{body['id']}/requirement", json={'content': ' ', 'confirm': True})
+    assert blank.status_code == 422
+
+
 def test_real_skill_install_and_automatic_split(client):
     pid, task_id = create_flow(client)
     skill = client.post(f"/api/v2/projects/{pid}/skills", json={"name": "bs-feature", "kind": "workflow", "content": "Build a vertical slice with tests."})
@@ -75,6 +98,29 @@ def test_end_to_end_with_force_review_and_idempotent_receipt(client):
     assert client.post(f'/api/v2/executions/{eid}/conclusion', json={'status': 'passed', 'summary': 'machine checks passed'}).status_code == 200
     accepted = client.post(f'/api/v2/executions/{eid}/acceptance', json={'status': 'accepted', 'summary': 'human accepted'})
     assert accepted.status_code == 200 and accepted.json()['status'] == 'accepted'
+
+def test_task_detail_includes_full_execution_evidence(client):
+    pid, task_id = create_flow(client)
+    assert client.post(f"/api/v2/tasks/{task_id}/review").status_code == 200
+    assert client.post(f"/api/v2/tasks/{task_id}/approve").status_code == 200
+    assert client.post(f"/api/v2/tasks/{task_id}/prompt").status_code == 201
+    started = client.post(f"/api/v2/tasks/{task_id}/execute").json()
+    execution = started["execution"]
+    eid = execution["id"]
+    report = {"report_id":"detail-evidence","execution_id":eid,"changed_files":[],"tests":["python -c pass"],"summary":"evidence"}
+    receipt = client.post('/api/v2/mcp/receipts', headers={"x-mcp-token":started["mcp_token"]}, json=report)
+    assert receipt.status_code == 200
+    test_run = client.post(f"/api/v2/projects/{pid}/tests", json={"command":"python -c pass","execution_id":eid})
+    assert test_run.status_code == 201
+    assert client.post(f"/api/v2/executions/{eid}/conclusion", json={"status":"passed","summary":"checks"}).status_code == 200
+    detail = client.get(f"/api/v2/projects/{pid}").json()
+    task = next(item for item in detail["tasks"] if item["id"] == task_id)
+    loaded = task["executions"][0]
+    assert loaded["id"] == eid
+    assert loaded["receipts"][0]["report_id"] == "detail-evidence"
+    assert loaded["tests"][0]["status"] == "passed"
+    assert loaded["conclusions"][0]["kind"] == "workbench"
+
 
 def test_prompt_preserves_review_provider_and_task_context(client):
     _, task_id = create_flow(client)
